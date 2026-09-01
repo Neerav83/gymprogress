@@ -5,11 +5,11 @@
 <form class="card form" (ngSubmit)="submit()">
   <label class="field">
     <span>E-post</span>
-    <input type="email" name="email" autocomplete="username" [(ngModel)]="email" required />
+    <input type="email" name="email" autocomplete="username webauthn" [(ngModel)]="email" required />
   </label>
   <label class="field">
     <span>Lösenord</span>
-    <input type="password" name="password" autocomplete="current-password" [(ngModel)]="password" required />
+    <input type="password" name="password" autocomplete="current-password webauthn" [(ngModel)]="password" required />
   </label>
   @if (error(); as message) {
     <p class="form-error">{{ message }}</p>
