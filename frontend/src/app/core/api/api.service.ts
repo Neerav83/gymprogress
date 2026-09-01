@@ -10,6 +10,7 @@ import {
   WorkoutExercise,
   WorkoutRecommendation,
   WorkoutSummary,
+  WorkoutTemplate,
 } from '../models/models';
 
 const API = '/api/v1';
@@ -36,6 +37,19 @@ export class ApiService {
 
   createWorkout() {
     return this.http.post<Workout>(`${API}/workouts`, {});
+  }
+
+  createWorkoutFromRecommendation(recommendation: WorkoutRecommendation) {
+    return this.http.post<Workout>(`${API}/workouts/from-recommendation`, {
+      workoutType: recommendation.workoutType,
+      exercises: recommendation.exercises.map((e) => ({
+        exerciseId: e.exerciseId,
+        sets: e.sets,
+        suggestedWeight: e.suggestedWeight,
+        targetRepsMin: e.targetRepsMin,
+        targetRepsMax: e.targetRepsMax,
+      })),
+    });
   }
 
   finishWorkout(id: string) {
@@ -90,5 +104,29 @@ export class ApiService {
 
   coachRecommendation() {
     return this.http.get<WorkoutRecommendation>(`${API}/coach/recommendation`);
+  }
+
+  workoutTemplates() {
+    return this.http.get<WorkoutTemplate[]>(`${API}/workout-templates`);
+  }
+
+  workoutTemplate(id: string) {
+    return this.http.get<WorkoutTemplate>(`${API}/workout-templates/${id}`);
+  }
+
+  createTemplateFromWorkout(workoutId: string, name: string, description: string | null) {
+    return this.http.post<WorkoutTemplate>(`${API}/workout-templates`, {
+      workoutId,
+      name,
+      description,
+    });
+  }
+
+  createWorkoutFromTemplate(templateId: string) {
+    return this.http.post<Workout>(`${API}/workouts/from-template/${templateId}`, {});
+  }
+
+  deleteWorkoutTemplate(id: string) {
+    return this.http.delete<void>(`${API}/workout-templates/${id}`);
   }
 }

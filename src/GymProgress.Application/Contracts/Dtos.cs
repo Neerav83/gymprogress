@@ -89,6 +89,17 @@ public sealed record DashboardDto(
 
 public sealed record CreateWorkoutRequest(string? Notes);
 
+public sealed record CreateWorkoutFromRecommendationRequest(
+    string WorkoutType,
+    IReadOnlyList<RecommendedExerciseForWorkout> Exercises);
+
+public sealed record RecommendedExerciseForWorkout(
+    Guid ExerciseId,
+    int Sets,
+    decimal SuggestedWeight,
+    int TargetRepsMin,
+    int TargetRepsMax);
+
 public sealed record AddExerciseRequest(Guid ExerciseId);
 
 public sealed record AddSetRequest(decimal WeightKg, int Reps);
@@ -109,3 +120,26 @@ public sealed record UserDto(Guid Id, string Email, string DisplayName);
 public sealed record AuthResponse(string AccessToken, string RefreshToken, UserDto User);
 
 public sealed record RefreshTokenRequest(string RefreshToken);
+
+public sealed record WorkoutTemplateDto(
+    Guid Id,
+    string Name,
+    string? Description,
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<WorkoutTemplateExerciseDto> Exercises);
+
+public sealed record WorkoutTemplateExerciseDto(
+    Guid ExerciseId,
+    string ExerciseName,
+    IReadOnlyList<string> MuscleGroups,
+    string Equipment,
+    int SortOrder,
+    int? SuggestedSets,
+    decimal? SuggestedWeight,
+    int? SuggestedRepsMin,
+    int? SuggestedRepsMax);
+
+public sealed record CreateTemplateFromWorkoutRequest(
+    Guid WorkoutId,
+    string Name,
+    string? Description);

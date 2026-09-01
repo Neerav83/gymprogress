@@ -92,4 +92,27 @@ export class HomePage implements OnInit {
       },
     });
   }
+
+  createFromRecommendation(): void {
+    const rec = this.recommendation();
+    if (!rec || this.starting()) {
+      return;
+    }
+
+    this.starting.set(true);
+    this.api.createWorkoutFromRecommendation(rec).subscribe({
+      next: (workout) => {
+        this.starting.set(false);
+        this.toast.success('Pass skapat från coachens rekommendation!');
+        void this.router.navigate(['/workout', workout.id]);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.starting.set(false);
+        const message = typeof err.error?.error === 'string'
+          ? err.error.error
+          : 'Kunde inte skapa pass från rekommendation.';
+        this.toast.error(message);
+      },
+    });
+  }
 }

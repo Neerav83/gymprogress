@@ -12,6 +12,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<WorkoutExercise> WorkoutExercises => Set<WorkoutExercise>();
     public DbSet<WorkoutSet> WorkoutSets => Set<WorkoutSet>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<WorkoutTemplate> WorkoutTemplates => Set<WorkoutTemplate>();
+    public DbSet<WorkoutTemplateExercise> WorkoutTemplateExercises => Set<WorkoutTemplateExercise>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

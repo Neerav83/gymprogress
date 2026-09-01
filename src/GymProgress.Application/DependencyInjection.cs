@@ -8,6 +8,7 @@ public static class DependencyInjection
     {
         services.AddScoped<ExerciseService>();
         services.AddScoped<WorkoutService>();
+        services.AddScoped<WorkoutTemplateService>();
         services.AddScoped<ProgressService>();
         services.AddScoped<CoachService>();
         services.AddScoped<AuthService>();

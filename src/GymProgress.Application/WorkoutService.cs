@@ -69,6 +69,115 @@ public sealed class WorkoutService(IApplicationDbContext db, ICurrentUser curren
         return await MapDetailAsync(workout, cancellationToken);
     }
 
+    public async Task<WorkoutDto> CreateFromRecommendationAsync(
+        CreateWorkoutFromRecommendationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var existing = await db.Workouts
+            .FirstOrDefaultAsync(
+                workout => workout.UserId == currentUser.UserId && workout.FinishedAt == null,
+                cancellationToken);
+
+        if (existing is not null)
+        {
+            throw new InvalidOperationException("Du har redan ett pågående pass. Avsluta det först.");
+        }
+
+        var exerciseIds = request.Exercises.Select(e => e.ExerciseId).ToList();
+        var exercises = await db.Exercises
+            .Where(e => exerciseIds.Contains(e.Id))
+            .ToListAsync(cancellationToken);
+
+        if (exercises.Count != exerciseIds.Count)
+        {
+            throw new InvalidOperationException("En eller flera övningar finns inte.");
+        }
+
+        var workout = new Workout
+        {
+            Id = Guid.NewGuid(),
+            UserId = currentUser.UserId,
+            StartedAt = DateTimeOffset.UtcNow,
+            Notes = request.WorkoutType
+        };
+
+        db.Workouts.Add(workout);
+
+        var sortOrder = 0;
+        foreach (var recommendedExercise in request.Exercises)
+        {
+            var exercise = exercises.First(e => e.Id == recommendedExercise.ExerciseId);
+            var workoutExercise = new WorkoutExercise
+            {
+                Id = Guid.NewGuid(),
+                WorkoutId = workout.Id,
+                ExerciseId = exercise.Id,
+                Exercise = exercise,
+                SortOrder = sortOrder++
+            };
+            db.WorkoutExercises.Add(workoutExercise);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await MapDetailAsync(workout, cancellationToken);
+    }
+
+    public async Task<WorkoutDto> CreateFromTemplateAsync(Guid templateId, CancellationToken cancellationToken)
+    {
+        var existing = await db.Workouts
+            .FirstOrDefaultAsync(
+                workout => workout.UserId == currentUser.UserId && workout.FinishedAt == null,
+                cancellationToken);
+
+        if (existing is not null)
+        {
+            throw new InvalidOperationException("Du har redan ett pågående pass. Avsluta det först.");
+        }
+
+        var template = await db.WorkoutTemplates
+            .Include(t => t.Exercises)
+                .ThenInclude(e => e.Exercise)
+            .FirstOrDefaultAsync(t => t.Id == templateId && t.UserId == currentUser.UserId, cancellationToken);
+
+        if (template is null)
+        {
+            throw new InvalidOperationException("Mallen hittades inte.");
+        }
+
+        if (template.Exercises.Count == 0)
+        {
+            throw new InvalidOperationException("Mallen har inga övningar.");
+        }
+
+        var workout = new Workout
+        {
+            Id = Guid.NewGuid(),
+            UserId = currentUser.UserId,
+            StartedAt = DateTimeOffset.UtcNow,
+            Notes = template.Name
+        };
+
+        db.Workouts.Add(workout);
+
+        foreach (var templateExercise in template.Exercises.OrderBy(e => e.SortOrder))
+        {
+            var workoutExercise = new WorkoutExercise
+            {
+                Id = Guid.NewGuid(),
+                WorkoutId = workout.Id,
+                ExerciseId = templateExercise.ExerciseId,
+                Exercise = templateExercise.Exercise,
+                SortOrder = templateExercise.SortOrder
+            };
+            db.WorkoutExercises.Add(workoutExercise);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await MapDetailAsync(workout, cancellationToken);
+    }
+
     public async Task<WorkoutDto?> FinishAsync(Guid id, CancellationToken cancellationToken)
     {
         var workout = await LoadWorkoutAsync(id, cancellationToken);

@@ -96,3 +96,38 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public sealed class WorkoutTemplateConfiguration : IEntityTypeConfiguration<WorkoutTemplate>
+{
+    public void Configure(EntityTypeBuilder<WorkoutTemplate> builder)
+    {
+        builder.ToTable("workout_templates");
+        builder.HasKey(template => template.Id);
+        builder.Property(template => template.Name).HasMaxLength(120).IsRequired();
+        builder.Property(template => template.Description).HasMaxLength(500);
+        builder.HasIndex(template => new { template.UserId, template.Name });
+        builder.HasOne(template => template.User)
+            .WithMany()
+            .HasForeignKey(template => template.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public sealed class WorkoutTemplateExerciseConfiguration : IEntityTypeConfiguration<WorkoutTemplateExercise>
+{
+    public void Configure(EntityTypeBuilder<WorkoutTemplateExercise> builder)
+    {
+        builder.ToTable("workout_template_exercises");
+        builder.HasKey(exercise => exercise.Id);
+        builder.HasIndex(exercise => new { exercise.TemplateId, exercise.ExerciseId });
+        builder.Property(exercise => exercise.SuggestedWeight).HasPrecision(6, 2);
+        builder.HasOne(exercise => exercise.Template)
+            .WithMany(template => template.Exercises)
+            .HasForeignKey(exercise => exercise.TemplateId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(exercise => exercise.Exercise)
+            .WithMany()
+            .HasForeignKey(exercise => exercise.ExerciseId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}

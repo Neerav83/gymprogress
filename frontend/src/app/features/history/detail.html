@@ -13,6 +13,12 @@
     }
   </div>
 
+  @if (!session.isActive && session.exercises.length > 0) {
+    <button class="btn btn-ghost btn-block" type="button" (click)="saveAsTemplate()" [disabled]="saving()">
+      💾 Spara som mall
+    </button>
+  }
+
   <button class="btn btn-danger btn-block" type="button" (click)="remove()" [disabled]="deleting()">
     Ta bort pass
   </button>

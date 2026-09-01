@@ -37,6 +37,38 @@ public sealed class WorkoutsController(WorkoutService workouts) : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = workout.Id }, workout);
     }
 
+    [HttpPost("from-recommendation")]
+    public async Task<ActionResult<WorkoutDto>> CreateFromRecommendation(
+        [FromBody] CreateWorkoutFromRecommendationRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var workout = await workouts.CreateFromRecommendationAsync(request, cancellationToken);
+            return CreatedAtAction(nameof(Get), new { id = workout.Id }, workout);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { error = exception.Message });
+        }
+    }
+
+    [HttpPost("from-template/{templateId:guid}")]
+    public async Task<ActionResult<WorkoutDto>> CreateFromTemplate(
+        Guid templateId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var workout = await workouts.CreateFromTemplateAsync(templateId, cancellationToken);
+            return CreatedAtAction(nameof(Get), new { id = workout.Id }, workout);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { error = exception.Message });
+        }
+    }
+
     [HttpPost("{id:guid}/finish")]
     public async Task<ActionResult<WorkoutDto>> Finish(Guid id, CancellationToken cancellationToken)
     {

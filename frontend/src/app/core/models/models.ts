@@ -119,3 +119,23 @@ export interface WorkoutRecommendation {
   exercises: WorkoutRecommendationExercise[];
 }
 
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  exercises: WorkoutTemplateExercise[];
+}
+
+export interface WorkoutTemplateExercise {
+  exerciseId: string;
+  exerciseName: string;
+  muscleGroups: string[];
+  equipment: string;
+  sortOrder: number;
+  suggestedSets: number | null;
+  suggestedWeight: number | null;
+  suggestedRepsMin: number | null;
+  suggestedRepsMax: number | null;
+}
+
