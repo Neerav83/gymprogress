@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
 import { WorkoutSummary } from '../../core/models/models';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { formatDay, formatKg } from '../../core/services/format';
 
 @Component({
@@ -12,6 +13,7 @@ import { formatDay, formatKg } from '../../core/services/format';
 })
 export class HistoryPage implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly confirm = inject(ConfirmService);
   protected readonly workouts = signal<WorkoutSummary[]>([]);
   protected readonly deletingId = signal<string | null>(null);
   protected day = formatDay;
@@ -21,11 +23,15 @@ export class HistoryPage implements OnInit {
     this.reload();
   }
 
-  remove(workout: WorkoutSummary, event: Event): void {
+  async remove(workout: WorkoutSummary, event: Event): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!confirm(`Ta bort passet från ${this.day(workout.startedAt)}? Det går inte att ångra.`)) {
+    const ok = await this.confirm.confirm({
+      title: 'Ta bort passet?',
+      message: `Passet från ${this.day(workout.startedAt)} tas bort för alltid.`,
+    });
+    if (!ok) {
       return;
     }
 

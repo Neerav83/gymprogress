@@ -4,10 +4,18 @@ import { AuthService } from './core/services/auth.service';
 import { PwaService } from './core/services/pwa.service';
 import { ToastContainerComponent } from './shared/ui/toast-container';
 import { RestTimerComponent } from './shared/ui/rest-timer';
+import { ConfirmDialogComponent } from './shared/ui/confirm-dialog';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, ToastContainerComponent, RestTimerComponent],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    ToastContainerComponent,
+    RestTimerComponent,
+    ConfirmDialogComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

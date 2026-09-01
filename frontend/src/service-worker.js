@@ -1,5 +1,5 @@
-const CACHE_NAME = 'gymprogress-v1';
-const RUNTIME_CACHE = 'gymprogress-runtime';
+const CACHE_NAME = 'gymprogress-v2';
+const RUNTIME_CACHE = 'gymprogress-runtime-v2';
 
 const PRECACHE_URLS = [
   '/',
@@ -38,6 +38,13 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET') {
+    return;
+  }
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/index.html').then((cached) => cached || Response.error())),
+    );
     return;
   }
 

@@ -8,7 +8,7 @@
 <div class="stack">
   @for (workout of workouts(); track workout.id) {
     <article class="card row">
-      <a [routerLink]="['/history', workout.id]">
+      <a [routerLink]="workout.isActive ? ['/workout', workout.id] : ['/history', workout.id]">
         <strong>{{ day(workout.startedAt) }}</strong>
         <p class="muted">
           {{ workout.isActive ? 'Pågår' : 'Avslutat' }} ·
