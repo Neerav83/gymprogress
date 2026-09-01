@@ -54,4 +54,23 @@ public sealed class AuthController(AuthService auth, ICurrentUser currentUser) :
         var user = await auth.GetMeAsync(currentUser.UserId, cancellationToken);
         return user is null ? Unauthorized() : Ok(user);
     }
+
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult<AuthResponse>> Refresh(
+        [FromBody] RefreshTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await auth.RefreshAsync(request.RefreshToken, cancellationToken);
+            return result is null
+                ? Unauthorized(new { error = "Ogiltig eller utgången refresh token." })
+                : Ok(result);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { error = exception.Message });
+        }
+    }
 }

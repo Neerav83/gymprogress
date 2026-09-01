@@ -1,5 +1,6 @@
 using System.Text;
 using GymProgress.Api;
+using GymProgress.Api.Middleware;
 using GymProgress.Application;
 using GymProgress.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -60,6 +61,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

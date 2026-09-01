@@ -24,7 +24,7 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
         user.PasswordHash = _passwords.HashPassword(user, request.Password);
         await db.SaveChangesAsync(cancellationToken);
 
-        return ToResponse(user);
+        return await ToResponseAsync(user, cancellationToken);
     }
 
     public async Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        return ToResponse(user);
+        return await ToResponseAsync(user, cancellationToken);
     }
 
     public async Task<UserDto?> GetMeAsync(Guid userId, CancellationToken cancellationToken)
@@ -85,8 +85,53 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
         return user;
     }
 
-    private AuthResponse ToResponse(User user) => new(
-        tokens.Create(user.Id, user.Email!, user.DisplayName),
+    public async Task<AuthResponse?> RefreshAsync(string refreshTokenValue, CancellationToken cancellationToken)
+    {
+        var refreshToken = await db.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue, cancellationToken);
+
+        if (refreshToken is null || !refreshToken.IsActive)
+        {
+            return null;
+        }
+
+        if (refreshToken.User.Email is null)
+        {
+            return null;
+        }
+
+        refreshToken.RevokedAt = DateTimeOffset.UtcNow;
+        var newRefreshToken = CreateRefreshToken(refreshToken.UserId);
+        db.RefreshTokens.Add(newRefreshToken);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return ToResponse(refreshToken.User, newRefreshToken.Token);
+    }
+
+    private RefreshToken CreateRefreshToken(Guid userId)
+    {
+        return new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Token = tokens.GenerateRefreshToken(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(30)
+        };
+    }
+
+    private async Task<AuthResponse> ToResponseAsync(User user, CancellationToken cancellationToken)
+    {
+        var refreshToken = CreateRefreshToken(user.Id);
+        db.RefreshTokens.Add(refreshToken);
+        await db.SaveChangesAsync(cancellationToken);
+        return ToResponse(user, refreshToken.Token);
+    }
+
+    private AuthResponse ToResponse(User user, string refreshToken) => new(
+        tokens.CreateAccessToken(user.Id, user.Email!, user.DisplayName),
+        refreshToken,
         new UserDto(user.Id, user.Email!, user.DisplayName));
 
     private static string NormalizeEmail(string? email)

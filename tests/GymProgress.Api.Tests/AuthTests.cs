@@ -42,7 +42,8 @@ public sealed class AuthTests : IClassFixture<GymProgressApiFactory>, IAsyncLife
         registered.EnsureSuccessStatusCode();
         var created = await registered.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.NotNull(created);
-        Assert.False(string.IsNullOrWhiteSpace(created.Token));
+        Assert.False(string.IsNullOrWhiteSpace(created.AccessToken));
+        Assert.False(string.IsNullOrWhiteSpace(created.RefreshToken));
         Assert.Equal("tommie@gym.test", created.User.Email);
 
         var login = await _client.PostAsJsonAsync(

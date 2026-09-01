@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using GymProgress.Application;
 using Microsoft.Extensions.Options;
@@ -9,12 +10,12 @@ namespace GymProgress.Infrastructure;
 
 public sealed class JwtTokenService(IOptions<JwtOptions> options) : ITokenService
 {
-    public string Create(Guid userId, string email, string displayName)
+    public string CreateAccessToken(Guid userId, string email, string displayName)
     {
         var settings = options.Value;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(RequireKey(settings.Key)));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddDays(Math.Clamp(settings.ExpirationDays, 1, 90));
+        var expires = DateTime.UtcNow.AddMinutes(15);
 
         var token = new JwtSecurityToken(
             settings.Issuer,
@@ -29,6 +30,14 @@ public sealed class JwtTokenService(IOptions<JwtOptions> options) : ITokenServic
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateRefreshToken()
+    {
+        var randomBytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
     }
 
     public static string RequireKey(string? key)
