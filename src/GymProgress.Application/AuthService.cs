@@ -117,7 +117,7 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
             UserId = userId,
             Token = tokens.GenerateRefreshToken(),
             CreatedAt = DateTimeOffset.UtcNow,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(30)
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(90)
         };
     }
 
