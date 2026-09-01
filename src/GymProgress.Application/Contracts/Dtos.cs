@@ -106,4 +106,6 @@ public sealed record LoginRequest(string Email, string Password);
 
 public sealed record UserDto(Guid Id, string Email, string DisplayName);
 
-public sealed record AuthResponse(string Token, UserDto User);
+public sealed record AuthResponse(string AccessToken, string RefreshToken, UserDto User);
+
+public sealed record RefreshTokenRequest(string RefreshToken);

@@ -53,3 +53,31 @@ h2 {
 .danger-text {
   color: var(--danger) !important;
 }
+
+.rest-timer-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rest-btn {
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rest-btn:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+.rest-btn:active {
+  transform: scale(0.96);
+}

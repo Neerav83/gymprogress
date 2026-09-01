@@ -79,3 +79,20 @@ public sealed class WorkoutSetConfiguration : IEntityTypeConfiguration<WorkoutSe
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+{
+    public void Configure(EntityTypeBuilder<RefreshToken> builder)
+    {
+        builder.ToTable("refresh_tokens");
+        builder.HasKey(token => token.Id);
+        builder.Property(token => token.Token).HasMaxLength(128).IsRequired();
+        builder.HasIndex(token => token.Token).IsUnique();
+        builder.HasIndex(token => new { token.UserId, token.ExpiresAt });
+        builder.Ignore(token => token.IsActive);
+        builder.HasOne(token => token.User)
+            .WithMany()
+            .HasForeignKey(token => token.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

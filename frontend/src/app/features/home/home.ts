@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
 import { Dashboard, WorkoutRecommendation } from '../../core/models/models';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 import { formatDay, formatKg, progressionLabel, recordLabel } from '../../core/services/format';
 
 @Component({
@@ -16,6 +17,7 @@ export class HomePage implements OnInit {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly data = signal<Dashboard | null>(null);
   protected readonly starting = signal(false);
@@ -27,7 +29,10 @@ export class HomePage implements OnInit {
   ngOnInit(): void {
     this.api.dashboard().subscribe({
       next: (dashboard) => this.data.set(dashboard),
-      error: () => this.error.set('Kunde inte nå API:t. Är backend och Postgres igång?'),
+      error: () => {
+        this.error.set('Kunde inte nå API:t. Är backend och Postgres igång?');
+        this.toast.error('Kunde inte nå API:t. Är backend och Postgres igång?');
+      },
     });
   }
 
@@ -58,11 +63,13 @@ export class HomePage implements OnInit {
     this.api.createWorkout().subscribe({
       next: (workout) => {
         this.starting.set(false);
+        this.toast.success('Nytt pass startat!');
         void this.router.navigate(['/workout', workout.id]);
       },
       error: () => {
         this.starting.set(false);
         this.error.set('Kunde inte starta passet.');
+        this.toast.error('Kunde inte starta passet.');
       },
     });
   }

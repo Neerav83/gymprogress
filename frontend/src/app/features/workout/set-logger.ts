@@ -3,6 +3,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
 import { PersonalRecordHit, Workout, WorkoutExercise } from '../../core/models/models';
 import { formatDay, formatKg, lastSessionSummary } from '../../core/services/format';
+import { RestTimerService } from '../../core/services/rest-timer.service';
+import { ToastService } from '../../core/services/toast.service';
 import { PrBannerComponent } from '../../shared/ui/pr-banner';
 import { StepperComponent } from '../../shared/ui/stepper';
 
@@ -15,6 +17,8 @@ import { StepperComponent } from '../../shared/ui/stepper';
 export class SetLoggerPage implements OnInit {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly restTimer = inject(RestTimerService);
+  private readonly toast = inject(ToastService);
 
   protected readonly workout = signal<Workout | null>(null);
   protected readonly saving = signal(false);
@@ -34,6 +38,11 @@ export class SetLoggerPage implements OnInit {
 
   ngOnInit(): void {
     this.load((exercise) => this.prefill(exercise));
+    this.restTimer.requestNotificationPermission();
+  }
+
+  protected startRestTimer(seconds: number): void {
+    this.restTimer.start(seconds);
   }
 
   protected workoutId(): string {
@@ -67,8 +76,12 @@ export class SetLoggerPage implements OnInit {
         this.saving.set(false);
         this.hits.set(result.personalRecords);
         this.patchExercise(result.exercise);
+        this.toast.success('Set loggat!');
       },
-      error: () => this.saving.set(false),
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('Kunde inte logga set');
+      },
     });
   }
 
