@@ -1,0 +1,19 @@
+.page-title {
+  margin-bottom: 18px;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.row p {
+  margin: 4px 0 0;
+}

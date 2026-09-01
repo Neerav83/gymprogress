@@ -1,0 +1,95 @@
+<section class="hero card">
+  <div class="hero-top">
+    <p class="page-kicker">Gym Progress</p>
+    <button class="text-btn" type="button" (click)="logout()">Logga ut</button>
+  </div>
+  <h1 class="page-title">Redo för dagens pass?</h1>
+  <p class="muted">{{ greeting() }}</p>
+  <button class="btn btn-primary btn-block" type="button" (click)="start()" [disabled]="starting()">
+    {{ data()?.activeWorkout ? 'Fortsätt pass' : 'Starta pass' }}
+  </button>
+</section>
+
+<section class="card coach">
+  <p class="page-kicker">Gyminstruktör</p>
+  <h2 class="coach-title">Dagens rekommendation</h2>
+  <p class="muted">Coachen tittar på din historik. Den skriver inte passet åt dig.</p>
+  <button class="btn btn-ghost btn-block" type="button" (click)="askCoach()" [disabled]="asking()">
+    {{ asking() ? 'Coachen tänker…' : 'Fråga coachen' }}
+  </button>
+
+  @if (coachError(); as message) {
+    <p class="coach-error">{{ message }}</p>
+  }
+
+  @if (recommendation(); as rec) {
+    <p class="coach-type">{{ rec.workoutType }}</p>
+    <p class="muted">{{ rec.coachNote }}</p>
+    <div class="stack coach-list">
+      @for (exercise of rec.exercises; track exercise.exerciseId) {
+        <article class="plan">
+          <div>
+            <strong>{{ exercise.exerciseName }}</strong>
+            <p class="muted">{{ exercise.reason }}</p>
+          </div>
+          <div class="plan-meta">
+            <span class="mono">{{ kg(exercise.suggestedWeight) }} kg · {{ exercise.sets }} × {{ exercise.targetRepsMin }}–{{ exercise.targetRepsMax }}</span>
+            <span class="muted">{{ progression(exercise.progression) }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+@if (error(); as message) {
+  <p class="empty">{{ message }}</p>
+}
+
+@if (data(); as dashboard) {
+  <section class="stats">
+    <article class="card">
+      <span class="muted">Pass denna vecka</span>
+      <strong class="mono">{{ dashboard.workoutsThisWeek }}</strong>
+    </article>
+    <article class="card">
+      <span class="muted">Senaste rekord</span>
+      <strong>{{ dashboard.recentRecords[0]?.exerciseName || '—' }}</strong>
+    </article>
+  </section>
+
+  @if (dashboard.recentRecords.length) {
+    <section>
+      <h2>Nya rekord</h2>
+      <div class="stack">
+        @for (record of dashboard.recentRecords.slice(0, 3); track record.exerciseId + record.type) {
+          <a class="card row" [routerLink]="['/progress', record.exerciseId]">
+            <div>
+              <strong>{{ record.exerciseName }}</strong>
+              <p class="muted">{{ recordName(record.type) }} · {{ record.label }}</p>
+            </div>
+            <span class="muted">{{ day(record.achievedAt) }}</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <section>
+    <h2>Senaste passen</h2>
+    @if (!dashboard.recentWorkouts.length) {
+      <p class="empty">Inga pass än. Starta det första när du är på gymmet.</p>
+    }
+    <div class="stack">
+      @for (workout of dashboard.recentWorkouts; track workout.id) {
+        <a class="card row" [routerLink]="['/history', workout.id]">
+          <div>
+            <strong>{{ day(workout.startedAt) }}</strong>
+            <p class="muted">{{ workout.exerciseNames.slice(0, 3).join(' · ') || 'Inga övningar' }}</p>
+          </div>
+          <span class="mono">{{ kg(workout.totalVolumeKg) }} kg</span>
+        </a>
+      }
+    </div>
+  </section>
+}

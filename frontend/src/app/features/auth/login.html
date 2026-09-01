@@ -1,0 +1,25 @@
+<p class="page-kicker">Gym Progress</p>
+<h1 class="page-title">Logga in</h1>
+<p class="muted">Dina pass syns bara på ditt konto.</p>
+
+<form class="card form" (ngSubmit)="submit()">
+  <label class="field">
+    <span>E-post</span>
+    <input type="email" name="email" autocomplete="username" [(ngModel)]="email" required />
+  </label>
+  <label class="field">
+    <span>Lösenord</span>
+    <input type="password" name="password" autocomplete="current-password" [(ngModel)]="password" required />
+  </label>
+  @if (error(); as message) {
+    <p class="form-error">{{ message }}</p>
+  }
+  <button class="btn btn-primary btn-block" type="submit" [disabled]="submitting()">
+    {{ submitting() ? 'Loggar in…' : 'Logga in' }}
+  </button>
+</form>
+
+<p class="switch">
+  Inget konto?
+  <a routerLink="/register">Skapa ett</a>
+</p>

@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gymprogress
+      POSTGRES_USER: gymprogress
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Sätt POSTGRES_PASSWORD i .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gymprogress -d gymprogress"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/GymProgress.Api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=gymprogress;Username=gymprogress;Password=${POSTGRES_PASSWORD:?Sätt POSTGRES_PASSWORD i .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      AI__BaseUrl: ${AI_BASE_URL:-http://host.docker.internal:1234}
+      AI__Model: ${AI_MODEL:-}
+      AI__TimeoutSeconds: 90
+      Jwt__Issuer: GymProgress
+      Jwt__Audience: GymProgress
+      Jwt__Key: ${JWT_KEY:?Sätt JWT_KEY i .env}
+      Jwt__ExpirationDays: 30
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

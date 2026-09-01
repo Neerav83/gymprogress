@@ -1,0 +1,55 @@
+<a routerLink="/records">Rekord</a>
+
+@if (data(); as progress) {
+  <p class="page-kicker">Progression</p>
+  <h1 class="page-title">{{ progress.exerciseName }}</h1>
+
+  <div class="ranges">
+    @for (item of ranges; track item.id) {
+      <button type="button" [class.active]="range() === item.id" (click)="select(item.id)">
+        {{ item.label }}
+      </button>
+    }
+  </div>
+
+  <section class="card chart">
+    @if (progress.points.length) {
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+        <path [attr.d]="chartPath()" />
+      </svg>
+      <p class="mono">
+        Senaste: {{ kg(progress.points.at(-1)!.maxWeightKg) }} kg ·
+        {{ kg(progress.points.at(-1)!.volumeKg) }} kg volym
+      </p>
+    } @else {
+      <p class="empty">Ingen data i det här intervallet ännu.</p>
+    }
+  </section>
+
+  <section>
+    <h2>Rekord</h2>
+    <div class="stack">
+      @for (record of progress.records; track record.type) {
+        <article class="card">
+          <strong>{{ recordName(record.type) }}</strong>
+          <p class="muted">{{ record.label }} · {{ day(record.achievedAt) }}</p>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section>
+    <h2>Pass</h2>
+    <div class="stack">
+      @for (point of progress.points.slice().reverse(); track point.date) {
+        <article class="card row">
+          <div>
+            <strong>{{ day(point.date) }}</strong>
+            <p class="muted">{{ point.totalReps }} reps · e1RM {{ kg(point.estimatedOneRepMax) }} kg</p>
+          </div>
+          <span class="mono">{{ kg(point.maxWeightKg) }} kg</span>
+        </article>
+      }
+    </div>
+  </section>
+}

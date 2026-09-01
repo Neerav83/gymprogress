@@ -1,0 +1,19 @@
+@if (workout(); as session) {
+  <a routerLink="/history">Tillbaka</a>
+  <p class="page-kicker">{{ session.isActive ? 'Pågående' : 'Avslutat' }}</p>
+  <h1 class="page-title">{{ day(session.startedAt) }}</h1>
+  <p class="muted">{{ kg(session.totalVolumeKg) }} kg volym</p>
+
+  <div class="stack">
+    @for (exercise of session.exercises; track exercise.id) {
+      <a class="card" [routerLink]="['/progress', exercise.exerciseId]">
+        <strong>{{ exercise.exerciseName }}</strong>
+        <p class="mono">{{ last(exercise.sets) }}</p>
+      </a>
+    }
+  </div>
+
+  <button class="btn btn-danger btn-block" type="button" (click)="remove()" [disabled]="deleting()">
+    Ta bort pass
+  </button>
+}

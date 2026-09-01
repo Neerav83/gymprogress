@@ -1,0 +1,37 @@
+.page-title {
+  margin-bottom: 18px;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.row a {
+  min-width: 0;
+  flex: 1;
+}
+
+.row p {
+  margin: 4px 0 0;
+}
+
+.meta {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.delete {
+  color: var(--danger);
+  font-weight: 700;
+  min-height: 36px;
+}

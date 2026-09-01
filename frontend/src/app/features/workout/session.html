@@ -1,0 +1,41 @@
+@if (workout(); as session) {
+  <header class="top">
+    <a routerLink="/">Tillbaka</a>
+    <p class="muted">Startat {{ clock(session.startedAt) }}</p>
+  </header>
+
+  <h1 class="page-title">Pågående pass</h1>
+  <p class="muted">{{ kg(session.totalVolumeKg) }} kg volym · {{ session.exercises.length }} övningar</p>
+
+  <div class="stack">
+    @for (exercise of session.exercises; track exercise.id) {
+      <a class="card exercise" [routerLink]="['/workout', session.id, 'exercise', exercise.id]">
+        <div>
+          <strong>{{ exercise.exerciseName }}</strong>
+          <p class="muted">
+            @if (exercise.sets.length) {
+              {{ exercise.sets.length }} set · {{ last(exercise.sets) }}
+            } @else if (exercise.lastSession) {
+              Förra: {{ last(exercise.lastSession.sets) }}
+            } @else {
+              Inget föregående pass
+            }
+          </p>
+        </div>
+        <span class="chevron">›</span>
+      </a>
+    }
+  </div>
+
+  <a class="btn btn-ghost btn-block" [routerLink]="['/workout', session.id, 'add-exercise']">
+    Lägg till övning
+  </a>
+
+  <button class="btn btn-primary btn-block finish" type="button" (click)="finish()" [disabled]="finishing()">
+    Avsluta pass
+  </button>
+
+  <button class="btn btn-danger btn-block" type="button" (click)="remove()" [disabled]="deleting()">
+    Ta bort pass
+  </button>
+}

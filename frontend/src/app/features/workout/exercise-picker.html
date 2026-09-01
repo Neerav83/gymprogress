@@ -1,0 +1,24 @@
+<header class="top">
+  <a [routerLink]="['/workout', routeId()]">Tillbaka</a>
+</header>
+
+<h1 class="page-title">Välj övning</h1>
+<input
+  class="search"
+  type="search"
+  placeholder="Sök övning eller muskelgrupp"
+  [ngModel]="query()"
+  (ngModelChange)="query.set($event)"
+/>
+
+<div class="stack">
+  @for (exercise of filtered(); track exercise.id) {
+    <button class="card pick" type="button" (click)="add(exercise)" [disabled]="adding() === exercise.id">
+      <strong>{{ exercise.name }}</strong>
+      <p class="muted">
+        {{ equipment(exercise.equipment) }} ·
+        {{ muscles(exercise) }}
+      </p>
+    </button>
+  }
+</div>

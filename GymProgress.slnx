@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GymProgress.Api/GymProgress.Api.csproj" />
+    <Project Path="src/GymProgress.Application/GymProgress.Application.csproj" />
+    <Project Path="src/GymProgress.Domain/GymProgress.Domain.csproj" />
+    <Project Path="src/GymProgress.Infrastructure/GymProgress.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GymProgress.Api.Tests/GymProgress.Api.Tests.csproj" />
+    <Project Path="tests/GymProgress.Application.Tests/GymProgress.Application.Tests.csproj" />
+    <Project Path="tests/GymProgress.Domain.Tests/GymProgress.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,18 @@
+<p class="page-kicker">Personliga rekord</p>
+<h1 class="page-title">Rekord</h1>
+
+@if (!records().length) {
+  <p class="empty">Rekord dyker upp automatiskt när du loggar set.</p>
+}
+
+<div class="stack">
+  @for (record of records(); track record.exerciseId + record.type) {
+    <a class="card row" [routerLink]="['/progress', record.exerciseId]">
+      <div>
+        <strong>{{ record.exerciseName }}</strong>
+        <p class="muted">{{ recordName(record.type) }} · {{ record.label }}</p>
+      </div>
+      <span class="muted">{{ day(record.achievedAt) }}</span>
+    </a>
+  }
+</div>

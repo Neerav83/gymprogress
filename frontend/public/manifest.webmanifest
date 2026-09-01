@@ -1,0 +1,17 @@
+{
+  "name": "Gym Progress",
+  "short_name": "Gym Progress",
+  "description": "Personlig träninglogg",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3efe6",
+  "theme_color": "#f3efe6",
+  "lang": "sv",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

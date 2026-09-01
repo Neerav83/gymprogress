@@ -1,0 +1,31 @@
+<p class="page-kicker">Logg</p>
+<h1 class="page-title">Historik</h1>
+
+@if (!workouts().length) {
+  <p class="empty">Inga avslutade eller pågående pass ännu.</p>
+}
+
+<div class="stack">
+  @for (workout of workouts(); track workout.id) {
+    <article class="card row">
+      <a [routerLink]="['/history', workout.id]">
+        <strong>{{ day(workout.startedAt) }}</strong>
+        <p class="muted">
+          {{ workout.isActive ? 'Pågår' : 'Avslutat' }} ·
+          {{ workout.exerciseNames.slice(0, 3).join(' · ') || 'Inga övningar' }}
+        </p>
+      </a>
+      <div class="meta">
+        <span class="mono">{{ kg(workout.totalVolumeKg) }} kg</span>
+        <button
+          type="button"
+          class="delete"
+          (click)="remove(workout, $event)"
+          [disabled]="deletingId() === workout.id"
+        >
+          Ta bort
+        </button>
+      </div>
+    </article>
+  }
+</div>

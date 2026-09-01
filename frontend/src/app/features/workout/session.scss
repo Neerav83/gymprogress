@@ -1,0 +1,45 @@
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.top a,
+.top p {
+  margin: 0;
+}
+
+.page-title {
+  margin-bottom: 8px;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.exercise {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.exercise p {
+  margin: 6px 0 0;
+}
+
+.chevron {
+  font-size: 1.6rem;
+  color: var(--muted);
+}
+
+.finish {
+  margin-top: 12px;
+}
+
+.btn-danger {
+  margin-top: 10px;
+}

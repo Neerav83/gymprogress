@@ -1,0 +1,26 @@
+.top {
+  margin-bottom: 16px;
+}
+
+.search {
+  width: 100%;
+  min-height: var(--tap);
+  margin: 16px 0 18px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.pick {
+  text-align: left;
+}
+
+.pick p {
+  margin: 6px 0 0;
+}

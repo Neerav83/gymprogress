@@ -1,0 +1,63 @@
+@if (exercise(); as current) {
+  <header class="top">
+    <a [routerLink]="['/workout', workoutId()]">Tillbaka</a>
+    <a class="muted" [routerLink]="['/progress', current.exerciseId]">Progress</a>
+  </header>
+
+  <h1 class="page-title">{{ current.exerciseName }}</h1>
+
+  @if (current.lastSession) {
+    <section class="card last">
+      <p class="page-kicker">Förra passet · {{ day(current.lastSession.performedAt) }}</p>
+      <p class="mono">{{ last(current.lastSession.sets) }}</p>
+    </section>
+  }
+
+  <app-pr-banner [hits]="hits()" />
+
+  <section class="card logger">
+    <app-stepper
+      label="Vikt"
+      unit="kg"
+      [value]="weight()"
+      [step]="2.5"
+      [min]="1.25"
+      [decimals]="true"
+      (valueChange)="weight.set($event)"
+    />
+    <app-stepper
+      label="Reps"
+      [value]="reps()"
+      [step]="1"
+      [min]="1"
+      [max]="50"
+      (valueChange)="reps.set($event)"
+    />
+    <button class="btn btn-primary btn-block" type="button" (click)="save()" [disabled]="saving()">
+      {{ editingSetId() ? 'Uppdatera set' : 'Spara set' }}
+    </button>
+  </section>
+
+  <section>
+    <h2>Idag</h2>
+    @if (!current.sets.length) {
+      <p class="empty">Inga set ännu. Spara det första.</p>
+    }
+    <div class="stack">
+      @for (set of current.sets; track set.id) {
+        <article class="card set">
+          <div>
+            <strong class="mono">Set {{ set.setNumber }}</strong>
+            <p class="mono">{{ kg(set.weightKg) }} kg × {{ set.reps }}</p>
+          </div>
+          <div class="actions">
+            <button type="button" (click)="edit(set.id, set.weightKg, set.reps)">Ändra</button>
+            <button type="button" class="danger-text" (click)="remove(set.id)">Ta bort</button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  <a class="btn btn-ghost btn-block" [routerLink]="['/workout', workoutId()]">Klar med övning</a>
+}

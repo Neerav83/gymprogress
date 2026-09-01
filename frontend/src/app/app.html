@@ -1,0 +1,11 @@
+<div class="app-shell" [class.guest]="!auth.isLoggedIn()">
+  <router-outlet />
+</div>
+
+@if (auth.isLoggedIn()) {
+  <nav class="tabbar" aria-label="Huvudmeny">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Idag</a>
+    <a routerLink="/history" routerLinkActive="active">Historik</a>
+    <a routerLink="/records" routerLinkActive="active">Rekord</a>
+  </nav>
+}

@@ -1,0 +1,29 @@
+<p class="page-kicker">Gym Progress</p>
+<h1 class="page-title">Skapa konto</h1>
+<p class="muted">Första kontot tar över den träning som redan är inloggad på den här servern.</p>
+
+<form class="card form" (ngSubmit)="submit()">
+  <label class="field">
+    <span>Namn</span>
+    <input type="text" name="displayName" autocomplete="name" [(ngModel)]="displayName" required minlength="2" />
+  </label>
+  <label class="field">
+    <span>E-post</span>
+    <input type="email" name="email" autocomplete="username" [(ngModel)]="email" required />
+  </label>
+  <label class="field">
+    <span>Lösenord</span>
+    <input type="password" name="password" autocomplete="new-password" [(ngModel)]="password" required minlength="8" />
+  </label>
+  @if (error(); as message) {
+    <p class="form-error">{{ message }}</p>
+  }
+  <button class="btn btn-primary btn-block" type="submit" [disabled]="submitting()">
+    {{ submitting() ? 'Skapar konto…' : 'Skapa konto' }}
+  </button>
+</form>
+
+<p class="switch">
+  Har du redan konto?
+  <a routerLink="/login">Logga in</a>
+</p>
