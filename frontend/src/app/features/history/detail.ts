@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Workout } from '../../core/models/models';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { formatDay, formatKg, lastSessionSummary } from '../../core/services/format';
 
 @Component({
@@ -13,6 +14,7 @@ import { formatDay, formatKg, lastSessionSummary } from '../../core/services/for
 })
 export class WorkoutDetailPage implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly confirm = inject(ConfirmService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -28,13 +30,17 @@ export class WorkoutDetailPage implements OnInit {
     this.api.workout(id).subscribe((workout) => this.workout.set(workout));
   }
 
-  remove(): void {
+  async remove(): Promise<void> {
     const workout = this.workout();
     if (!workout) {
       return;
     }
 
-    if (!confirm(`Ta bort passet från ${this.day(workout.startedAt)}? Det går inte att ångra.`)) {
+    const ok = await this.confirm.confirm({
+      title: 'Ta bort passet?',
+      message: `Passet från ${this.day(workout.startedAt)} tas bort för alltid.`,
+    });
+    if (!ok) {
       return;
     }
 

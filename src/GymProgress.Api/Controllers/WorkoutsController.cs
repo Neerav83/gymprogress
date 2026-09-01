@@ -34,7 +34,7 @@ public sealed class WorkoutsController(WorkoutService workouts) : ControllerBase
         CancellationToken cancellationToken)
     {
         var workout = await workouts.CreateAsync(request ?? new CreateWorkoutRequest(null), cancellationToken);
-        return CreatedAtAction(nameof(Get), new { id = workout.Id }, workout);
+        return Ok(workout);
     }
 
     [HttpPost("from-recommendation")]

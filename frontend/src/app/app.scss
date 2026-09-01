@@ -5,7 +5,7 @@
   transform: translateX(-50%);
   width: min(480px, 100%);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
   background: rgba(255, 253, 248, 0.94);

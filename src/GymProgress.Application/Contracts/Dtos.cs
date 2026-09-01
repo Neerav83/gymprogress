@@ -143,3 +143,4 @@ public sealed record CreateTemplateFromWorkoutRequest(
     Guid WorkoutId,
     string Name,
     string? Description);
+

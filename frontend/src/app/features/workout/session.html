@@ -1,3 +1,8 @@
+@if (error(); as message) {
+  <p class="empty">{{ message }}</p>
+  <a class="btn btn-ghost btn-block" routerLink="/">Tillbaka</a>
+}
+
 @if (workout(); as session) {
   <header class="top">
     <a routerLink="/">Tillbaka</a>

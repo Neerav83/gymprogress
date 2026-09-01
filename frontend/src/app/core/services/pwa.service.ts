@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, isDevMode, signal } from '@angular/core';
 import { ToastService } from './toast.service';
 
 @Injectable({
@@ -14,28 +14,42 @@ export class PwaService {
   }
 
   private initializeServiceWorker(): void {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/service-worker.js')
-          .then((registration) => {
-            console.log('Service Worker registrerad:', registration.scope);
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
 
-            registration.addEventListener('updatefound', () => {
-              const newWorker = registration.installing;
-              if (newWorker) {
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    this.toast.info('En ny version finns tillgänglig. Ladda om sidan.', 0);
-                  }
-                });
-              }
-            });
-          })
-          .catch((error) => {
-            console.error('Service Worker registrering misslyckades:', error);
+    if (isDevMode()) {
+      void this.unregisterWorkers();
+      return;
+    }
+
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/service-worker.js')
+        .then((registration) => {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  this.toast.info('En ny version finns tillgänglig. Ladda om sidan.', 0);
+                }
+              });
+            }
           });
-      });
+        })
+        .catch((error) => {
+          console.error('Service Worker registrering misslyckades:', error);
+        });
+    });
+  }
+
+  private async unregisterWorkers(): Promise<void> {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
     }
   }
 
