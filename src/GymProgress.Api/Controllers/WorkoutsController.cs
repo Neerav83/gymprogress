@@ -45,7 +45,7 @@ public sealed class WorkoutsController(WorkoutService workouts) : ControllerBase
         try
         {
             var workout = await workouts.CreateFromRecommendationAsync(request, cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = workout.Id }, workout);
+            return Ok(workout);
         }
         catch (InvalidOperationException exception)
         {
@@ -61,7 +61,7 @@ public sealed class WorkoutsController(WorkoutService workouts) : ControllerBase
         try
         {
             var workout = await workouts.CreateFromTemplateAsync(templateId, cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = workout.Id }, workout);
+            return Ok(workout);
         }
         catch (InvalidOperationException exception)
         {

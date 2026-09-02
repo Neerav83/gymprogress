@@ -10,6 +10,34 @@
   </button>
 </section>
 
+@if (pickingStart()) {
+  <div class="picker-layer">
+    <div class="scrim" (click)="closeStartPicker()"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="start-title">
+      <h2 id="start-title" class="sheet-title">Starta pass</h2>
+      <p class="muted">Välj en mall eller börja utan övningar.</p>
+      <button class="btn btn-ghost btn-block" type="button" (click)="createEmpty()" [disabled]="starting()">
+        Tomt pass
+      </button>
+      <div class="template-list">
+        @if (!templatesReady()) {
+          <p class="muted">Hämtar mallar…</p>
+        } @else if (!templates().length) {
+          <p class="muted">Inga sparade mallar ännu.</p>
+        } @else {
+          @for (template of templates(); track template.id) {
+            <button class="template-pick" type="button" (click)="startFromTemplate(template)" [disabled]="starting()">
+              <strong>{{ template.name }}</strong>
+              <span class="muted">{{ template.exercises.length }} övningar</span>
+            </button>
+          }
+        }
+      </div>
+      <button class="btn btn-ghost btn-block cancel" type="button" (click)="closeStartPicker()">Avbryt</button>
+    </div>
+  </div>
+}
+
 <section class="card coach">
   <p class="page-kicker">Gyminstruktör</p>
   <h2 class="coach-title">Dagens rekommendation</h2>
@@ -85,7 +113,7 @@
     }
     <div class="stack">
       @for (workout of dashboard.recentWorkouts; track workout.id) {
-        <a class="card row" [routerLink]="['/history', workout.id]">
+        <a class="card row" [routerLink]="workout.isActive ? ['/workout', workout.id] : ['/history', workout.id]">
           <div>
             <strong>{{ day(workout.startedAt) }}</strong>
             <p class="muted">{{ workout.exerciseNames.slice(0, 3).join(' · ') || 'Inga övningar' }}</p>

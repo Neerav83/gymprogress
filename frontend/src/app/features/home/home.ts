@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, NgZone, OnInit, signal } from '@angular/core';
+import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
-import { Dashboard, Workout, WorkoutRecommendation } from '../../core/models/models';
+import { Dashboard, Workout, WorkoutRecommendation, WorkoutTemplate } from '../../core/models/models';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { WorkoutNav } from '../../core/services/workout-nav';
 import { formatDay, formatKg, progressionLabel, recordLabel } from '../../core/services/format';
 
 @Component({
@@ -18,9 +19,12 @@ export class HomePage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
-  private readonly zone = inject(NgZone);
+  private readonly nav = inject(WorkoutNav);
 
   protected readonly data = signal<Dashboard | null>(null);
+  protected readonly templates = signal<WorkoutTemplate[]>([]);
+  protected readonly templatesReady = signal(false);
+  protected readonly pickingStart = signal(false);
   protected readonly starting = signal(false);
   protected readonly asking = signal(false);
   protected readonly recommendation = signal<WorkoutRecommendation | null>(null);
@@ -39,6 +43,14 @@ export class HomePage implements OnInit {
         this.error.set('Kunde inte nå API:t. Är backend och Postgres igång?');
         this.toast.error('Kunde inte nå API:t. Är backend och Postgres igång?');
       },
+    });
+
+    this.api.workoutTemplates().subscribe({
+      next: (templates) => {
+        this.templates.set(templates);
+        this.templatesReady.set(true);
+      },
+      error: () => this.templatesReady.set(true),
     });
   }
 
@@ -61,10 +73,31 @@ export class HomePage implements OnInit {
   start(): void {
     const activeId = this.data()?.activeWorkout?.id;
     if (activeId) {
-      void this.router.navigate(['/workout', activeId]);
+      void this.nav.open(activeId);
       return;
     }
 
+    if (!this.templatesReady() || this.templates().length) {
+      this.pickingStart.set(true);
+      return;
+    }
+
+    this.createEmpty();
+  }
+
+  closeStartPicker(): void {
+    this.pickingStart.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.pickingStart()) {
+      this.closeStartPicker();
+    }
+  }
+
+  createEmpty(): void {
+    this.pickingStart.set(false);
     this.starting.set(true);
     this.api.createWorkout().subscribe({
       next: (workout) => this.openWorkout(workout),
@@ -76,13 +109,34 @@ export class HomePage implements OnInit {
     });
   }
 
+  startFromTemplate(template: WorkoutTemplate): void {
+    this.pickingStart.set(false);
+    this.starting.set(true);
+    this.api.createWorkoutFromTemplate(template.id).subscribe({
+      next: (workout) => this.openWorkout(workout),
+      error: (err: HttpErrorResponse) => {
+        this.starting.set(false);
+        const message = typeof err.error?.error === 'string'
+          ? err.error.error
+          : 'Kunde inte starta pass från mallen.';
+        this.toast.error(message);
+      },
+    });
+  }
+
   private openWorkout(workout: Workout | null | undefined): void {
+    if (workout) {
+      this.data.update((dashboard) =>
+        dashboard ? { ...dashboard, activeWorkout: workout } : dashboard,
+      );
+    }
+
     const id = workout?.id;
     if (!id) {
       this.api.dashboard().subscribe({
         next: (dashboard) => {
           this.data.set(dashboard);
-          this.goToWorkout(dashboard.activeWorkout?.id);
+          void this.finishOpen(dashboard.activeWorkout?.id);
         },
         error: () => {
           this.starting.set(false);
@@ -92,26 +146,15 @@ export class HomePage implements OnInit {
       return;
     }
 
-    this.goToWorkout(id);
+    void this.finishOpen(id);
   }
 
-  private goToWorkout(id: string | undefined): void {
-    if (!id) {
-      this.starting.set(false);
-      this.error.set('Passet skapades men sidan kunde inte öppnas. Öppna det under Historik.');
-      return;
+  private async finishOpen(id: string | undefined): Promise<void> {
+    const opened = await this.nav.open(id);
+    this.starting.set(false);
+    if (!opened) {
+      this.error.set('Kunde inte öppna passet. Tryck Fortsätt pass.');
     }
-
-    this.zone.run(() => {
-      setTimeout(() => {
-        void this.router.navigateByUrl(`/workout/${id}`).then((opened) => {
-          this.starting.set(false);
-          if (!opened) {
-            this.error.set('Kunde inte öppna passet. Tryck Fortsätt pass.');
-          }
-        });
-      });
-    });
   }
 
   askCoach(): void {
@@ -141,10 +184,7 @@ export class HomePage implements OnInit {
 
     this.starting.set(true);
     this.api.createWorkoutFromRecommendation(rec).subscribe({
-      next: (workout) => {
-        this.toast.success('Pass skapat från coachens rekommendation!');
-        this.openWorkout(workout);
-      },
+      next: (workout) => this.openWorkout(workout),
       error: (err: HttpErrorResponse) => {
         this.starting.set(false);
         const message = typeof err.error?.error === 'string'

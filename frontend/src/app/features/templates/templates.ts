@@ -1,7 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/api/api.service';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { ToastService } from '../../core/services/toast.service';
+import { WorkoutNav } from '../../core/services/workout-nav';
 import { WorkoutTemplate } from '../../core/models/models';
 
 @Component({
@@ -100,8 +102,9 @@ import { WorkoutTemplate } from '../../core/models/models';
 })
 export class TemplatesPage implements OnInit {
   private readonly api = inject(ApiService);
-  private readonly router = inject(Router);
+  private readonly nav = inject(WorkoutNav);
   private readonly toast = inject(ToastService);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly templates = signal<WorkoutTemplate[]>([]);
   protected readonly starting = signal(false);
@@ -124,10 +127,12 @@ export class TemplatesPage implements OnInit {
 
     this.starting.set(true);
     this.api.createWorkoutFromTemplate(template.id).subscribe({
-      next: (workout) => {
+      next: async (workout) => {
+        const opened = await this.nav.open(workout?.id);
         this.starting.set(false);
-        this.toast.success(`Pass startat från "${template.name}"!`);
-        void this.router.navigate(['/workout', workout.id]);
+        if (!opened) {
+          this.toast.error('Passet skapades. Öppna det från Idag.');
+        }
       },
       error: () => {
         this.starting.set(false);
@@ -136,8 +141,12 @@ export class TemplatesPage implements OnInit {
     });
   }
 
-  remove(template: WorkoutTemplate): void {
-    if (!confirm(`Ta bort mallen "${template.name}"? Det går inte att ångra.`)) {
+  async remove(template: WorkoutTemplate): Promise<void> {
+    const ok = await this.confirm.confirm({
+      title: 'Ta bort mallen?',
+      message: `"${template.name}" tas bort. Dina loggade pass påverkas inte.`,
+    });
+    if (!ok) {
       return;
     }
 
