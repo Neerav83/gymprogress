@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [Main, main]
   pull_request:
+    branches: [Main, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend:
@@ -31,3 +36,35 @@ jobs:
       - run: npm ci
       - run: npx ng build
       - run: npx ng test --watch=false --browsers=ChromeHeadless
+
+  docker:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CI secrets
+        run: |
+          echo "POSTGRES_PASSWORD=ci-postgres-password" > .env
+          echo "JWT_KEY=ci-jwt-key-must-be-at-least-32-chars!" >> .env
+          echo "CORS_ORIGINS=http://localhost,http://127.0.0.1,http://localhost:80" >> .env
+          echo "WEB_PORT=80" >> .env
+
+      - name: Build and start stack
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: Smoke test
+        run: |
+          curl -fsS http://localhost/health
+          curl -fsS http://localhost:5080/health
+          curl -fsS http://localhost/ | grep -qi 'app-root'
+          status="$(curl -sS -o /dev/null -w '%{http_code}' http://localhost/api/v1/exercises)"
+          test "$status" = "401"
+
+      - name: Compose logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v

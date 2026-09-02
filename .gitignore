@@ -16,6 +16,9 @@ frontend/node_modules/
 frontend/dist/
 frontend/.angular/
 
+# Auto-deploy lock
+.update.lock/
+
 # OS / IDE
 .DS_Store
 .idea/
