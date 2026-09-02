@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LOCK_DIR="$ROOT/.update.lock"
+DEPLOYED_SHA_FILE="$ROOT/.deployed-sha"
 WAIT_FOR_CI="${WAIT_FOR_CI:-1}"
 BRANCH="${UPDATE_BRANCH:-Main}"
 
@@ -42,13 +43,19 @@ fi
 git fetch origin "refs/heads/$BRANCH:refs/remotes/origin/$BRANCH"
 local_sha="$(git rev-parse HEAD)"
 remote_sha="$(git rev-parse "origin/$BRANCH")"
-
-if [[ "$local_sha" == "$remote_sha" ]]; then
-  log "Redan på senaste $BRANCH ($local_sha)."
-  exit 0
+deployed_sha=""
+if [[ -f "$DEPLOYED_SHA_FILE" ]]; then
+  deployed_sha="$(<"$DEPLOYED_SHA_FILE")"
 fi
 
-log "Ny kod på origin/$BRANCH: $local_sha → $remote_sha"
+if [[ "$local_sha" != "$remote_sha" ]]; then
+  log "Ny kod på origin/$BRANCH: $local_sha → $remote_sha"
+elif [[ "$deployed_sha" == "$remote_sha" ]]; then
+  log "Redan deployad $BRANCH ($remote_sha)."
+  exit 0
+else
+  log "Git är på $remote_sha men Docker kör fortfarande ${deployed_sha:-inget}. Bygger om."
+fi
 
 if [[ "$WAIT_FOR_CI" == "1" ]] && command -v gh >/dev/null 2>&1; then
   status="$(gh run list --commit "$remote_sha" --workflow CI --limit 1 --json status --jq '.[0].status // empty' 2>/dev/null || true)"
@@ -71,7 +78,11 @@ elif [[ "$WAIT_FOR_CI" == "1" ]]; then
   log "gh saknas, hoppar över CI-kollen."
 fi
 
-git pull --ff-only origin "$BRANCH"
+if [[ "$local_sha" != "$remote_sha" ]]; then
+  git pull --ff-only origin "$BRANCH"
+fi
+
 log "Bygger och startar Docker-stacken."
 docker compose up -d --build --wait --wait-timeout 180
+git rev-parse HEAD > "$DEPLOYED_SHA_FILE"
 log "Servern är uppdaterad till $(git rev-parse --short HEAD)."
