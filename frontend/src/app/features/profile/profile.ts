@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api/api.service';
 import { BodyMetrics, UserProfile } from '../../core/models/models';
+import { ConfirmService } from '../../core/services/confirm.service';
 import { ToastService } from '../../core/services/toast.service';
 import { formatDay } from '../../core/services/format';
 
@@ -13,6 +14,7 @@ import { formatDay } from '../../core/services/format';
 })
 export class ProfilePage implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly confirm = inject(ConfirmService);
   private readonly toast = inject(ToastService);
 
   protected readonly profile = signal<UserProfile | null>(null);
@@ -33,13 +35,13 @@ export class ProfilePage implements OnInit {
 
   // Body metrics
   protected readonly addingMetrics = signal(false);
-  protected readonly newWeightKg = signal<number | null>(null);
-  protected readonly newHeightCm = signal<number | null>(null);
-  protected readonly newChestCm = signal<number | null>(null);
-  protected readonly newWaistCm = signal<number | null>(null);
-  protected readonly newHipsCm = signal<number | null>(null);
-  protected readonly newArmCm = signal<number | null>(null);
-  protected readonly newThighCm = signal<number | null>(null);
+  protected readonly newWeightKg = signal('');
+  protected readonly newHeightCm = signal('');
+  protected readonly newChestCm = signal('');
+  protected readonly newWaistCm = signal('');
+  protected readonly newHipsCm = signal('');
+  protected readonly newArmCm = signal('');
+  protected readonly newThighCm = signal('');
   protected readonly newNotes = signal('');
 
   ngOnInit(): void {
@@ -157,26 +159,42 @@ export class ProfilePage implements OnInit {
 
   cancelAddMetrics(): void {
     this.addingMetrics.set(false);
-    this.newWeightKg.set(null);
-    this.newHeightCm.set(null);
-    this.newChestCm.set(null);
-    this.newWaistCm.set(null);
-    this.newHipsCm.set(null);
-    this.newArmCm.set(null);
-    this.newThighCm.set(null);
+    this.newWeightKg.set('');
+    this.newHeightCm.set('');
+    this.newChestCm.set('');
+    this.newWaistCm.set('');
+    this.newHipsCm.set('');
+    this.newArmCm.set('');
+    this.newThighCm.set('');
     this.newNotes.set('');
   }
 
   saveMetrics(): void {
-    const payload: any = {};
-    if (this.newWeightKg()) payload.weightKg = this.newWeightKg();
-    if (this.newHeightCm()) payload.heightCm = this.newHeightCm();
-    if (this.newChestCm()) payload.chestCm = this.newChestCm();
-    if (this.newWaistCm()) payload.waistCm = this.newWaistCm();
-    if (this.newHipsCm()) payload.hipsCm = this.newHipsCm();
-    if (this.newArmCm()) payload.armCm = this.newArmCm();
-    if (this.newThighCm()) payload.thighCm = this.newThighCm();
-    if (this.newNotes()) payload.notes = this.newNotes();
+    const payload: {
+      weightKg?: number;
+      heightCm?: number;
+      chestCm?: number;
+      waistCm?: number;
+      hipsCm?: number;
+      armCm?: number;
+      thighCm?: number;
+      notes?: string;
+    } = {};
+    const weightKg = this.parseMetric(this.newWeightKg());
+    const heightCm = this.parseMetric(this.newHeightCm());
+    const chestCm = this.parseMetric(this.newChestCm());
+    const waistCm = this.parseMetric(this.newWaistCm());
+    const hipsCm = this.parseMetric(this.newHipsCm());
+    const armCm = this.parseMetric(this.newArmCm());
+    const thighCm = this.parseMetric(this.newThighCm());
+    if (weightKg !== null) payload.weightKg = weightKg;
+    if (heightCm !== null) payload.heightCm = heightCm;
+    if (chestCm !== null) payload.chestCm = chestCm;
+    if (waistCm !== null) payload.waistCm = waistCm;
+    if (hipsCm !== null) payload.hipsCm = hipsCm;
+    if (armCm !== null) payload.armCm = armCm;
+    if (thighCm !== null) payload.thighCm = thighCm;
+    if (this.newNotes().trim()) payload.notes = this.newNotes().trim();
 
     this.saving.set(true);
     this.api.addBodyMetrics(payload).subscribe({
@@ -193,8 +211,12 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  deleteMetrics(id: string): void {
-    if (!confirm('Är du säker på att du vill ta bort dessa mått?')) {
+  async deleteMetrics(id: string): Promise<void> {
+    const ok = await this.confirm.confirm({
+      title: 'Ta bort måttet?',
+      message: 'Det här måttet tas bort för alltid. Övriga loggar påverkas inte.',
+    });
+    if (!ok) {
       return;
     }
 
@@ -207,6 +229,15 @@ export class ProfilePage implements OnInit {
         this.toast.error('Kunde inte ta bort mått');
       },
     });
+  }
+
+  private parseMetric(value: string): number | null {
+    const normalized = value.replace(',', '.').trim();
+    if (!normalized) {
+      return null;
+    }
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   getLatestMetric(key: keyof BodyMetrics): number | null {
