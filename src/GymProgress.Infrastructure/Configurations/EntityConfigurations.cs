@@ -13,6 +13,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.DisplayName).HasMaxLength(100).IsRequired();
         builder.Property(user => user.Email).HasMaxLength(320);
         builder.Property(user => user.PasswordHash).HasMaxLength(500);
+        builder.Property(user => user.ProfileImageUrl).HasMaxLength(2000);
         builder.HasIndex(user => user.Email).IsUnique().HasFilter("\"Email\" IS NOT NULL");
         builder.Property(user => user.CreatedAt).IsRequired();
     }
@@ -129,5 +130,28 @@ public sealed class WorkoutTemplateExerciseConfiguration : IEntityTypeConfigurat
             .WithMany()
             .HasForeignKey(exercise => exercise.ExerciseId)
             .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public sealed class BodyMetricsConfiguration : IEntityTypeConfiguration<BodyMetrics>
+{
+    public void Configure(EntityTypeBuilder<BodyMetrics> builder)
+    {
+        builder.ToTable("body_metrics");
+        builder.HasKey(metrics => metrics.Id);
+        builder.Property(metrics => metrics.WeightKg).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.HeightCm).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.ChestCm).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.WaistCm).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.HipsCm).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.ArmCm).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.ThighCm).HasPrecision(5, 1);
+        builder.Property(metrics => metrics.Notes).HasMaxLength(500);
+        builder.HasIndex(metrics => metrics.UserId);
+        builder.HasIndex(metrics => new { metrics.UserId, metrics.Date });
+        builder.HasOne(metrics => metrics.User)
+            .WithMany(user => user.BodyMetrics)
+            .HasForeignKey(metrics => metrics.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
