@@ -8,9 +8,10 @@
 
 @if (auth.isLoggedIn()) {
   <nav class="tabbar" aria-label="Huvudmeny">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Idag</a>
     <a routerLink="/history" routerLinkActive="active">Historik</a>
     <a routerLink="/templates" routerLinkActive="active">Mallar</a>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="home-btn">Hem</a>
     <a routerLink="/records" routerLinkActive="active">Rekord</a>
+    <a routerLink="/profile" routerLinkActive="active">Profil</a>
   </nav>
 }

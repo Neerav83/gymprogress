@@ -115,7 +115,7 @@ public sealed record RegisterRequest(string Email, string Password, string Displ
 
 public sealed record LoginRequest(string Email, string Password);
 
-public sealed record UserDto(Guid Id, string Email, string DisplayName);
+public sealed record UserDto(Guid Id, string Email, string DisplayName, string? ProfileImageUrl, DateTimeOffset CreatedAt);
 
 public sealed record AuthResponse(string AccessToken, string RefreshToken, UserDto User);
 
@@ -148,4 +148,54 @@ public sealed record UpdateWorkoutTemplateRequest(
     string Name,
     string? Description,
     IReadOnlyList<Guid> ExerciseIds);
+
+public sealed record UserProfileDto(
+    Guid Id,
+    string Email,
+    string DisplayName,
+    string? ProfileImageUrl,
+    DateTimeOffset CreatedAt);
+
+public sealed record UpdateProfileRequest(
+    string? DisplayName,
+    string? ProfileImageUrl);
+
+public sealed record ChangePasswordRequest(
+    string CurrentPassword,
+    string NewPassword);
+
+public sealed record BodyMetricsDto(
+    Guid Id,
+    DateTimeOffset Date,
+    decimal? WeightKg,
+    decimal? HeightCm,
+    decimal? ChestCm,
+    decimal? WaistCm,
+    decimal? HipsCm,
+    decimal? ArmCm,
+    decimal? ThighCm,
+    string? Notes);
+
+public sealed record AddBodyMetricsRequest(
+    decimal? WeightKg,
+    decimal? HeightCm,
+    decimal? ChestCm,
+    decimal? WaistCm,
+    decimal? HipsCm,
+    decimal? ArmCm,
+    decimal? ThighCm,
+    string? Notes);
+
+public sealed record UpdateBodyMetricsRequest(
+    decimal? WeightKg,
+    decimal? HeightCm,
+    decimal? ChestCm,
+    decimal? WaistCm,
+    decimal? HipsCm,
+    decimal? ArmCm,
+    decimal? ThighCm,
+    string? Notes);
+
+public sealed record BodyMetricsHistoryDto(
+    IReadOnlyList<BodyMetricsDto> Metrics);
 

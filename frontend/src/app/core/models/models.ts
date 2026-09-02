@@ -139,3 +139,28 @@ export interface WorkoutTemplateExercise {
   suggestedRepsMax: number | null;
 }
 
+export interface UserProfile {
+  id: string;
+  email: string;
+  displayName: string;
+  profileImageUrl: string | null;
+  createdAt: string;
+}
+
+export interface BodyMetrics {
+  id: string;
+  date: string;
+  weightKg: number | null;
+  heightCm: number | null;
+  chestCm: number | null;
+  waistCm: number | null;
+  hipsCm: number | null;
+  armCm: number | null;
+  thighCm: number | null;
+  notes: string | null;
+}
+
+export interface BodyMetricsHistory {
+  metrics: BodyMetrics[];
+}
+

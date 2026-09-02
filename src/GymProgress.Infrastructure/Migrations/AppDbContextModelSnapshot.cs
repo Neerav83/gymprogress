@@ -83,6 +83,59 @@ namespace GymProgress.Infrastructure.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("GymProgress.Domain.BodyMetrics", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("WeightKg")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("HeightCm")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("ChestCm")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("WaistCm")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("HipsCm")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("ArmCm")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<decimal?>("ThighCm")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "Date");
+
+                    b.ToTable("body_metrics", (string)null);
+                });
+
             modelBuilder.Entity("GymProgress.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -104,6 +157,10 @@ namespace GymProgress.Infrastructure.Migrations
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ProfileImageUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.HasKey("Id");
 
@@ -270,6 +327,17 @@ namespace GymProgress.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GymProgress.Domain.BodyMetrics", b =>
+                {
+                    b.HasOne("GymProgress.Domain.User", "User")
+                        .WithMany("BodyMetrics")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GymProgress.Domain.Workout", b =>
                 {
                     b.HasOne("GymProgress.Domain.User", "User")
@@ -348,6 +416,8 @@ namespace GymProgress.Infrastructure.Migrations
 
             modelBuilder.Entity("GymProgress.Domain.User", b =>
                 {
+                    b.Navigation("BodyMetrics");
+
                     b.Navigation("Workouts");
                 });
 

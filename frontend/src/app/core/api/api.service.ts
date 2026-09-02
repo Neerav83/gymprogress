@@ -2,10 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   AddSetResponse,
+  BodyMetrics,
+  BodyMetricsHistory,
   Dashboard,
   Exercise,
   ExerciseProgress,
   PersonalRecord,
+  UserProfile,
   Workout,
   WorkoutExercise,
   WorkoutRecommendation,
@@ -135,5 +138,56 @@ export class ApiService {
 
   deleteWorkoutTemplate(id: string) {
     return this.http.delete<void>(`${API}/workout-templates/${id}`);
+  }
+
+  // Profile
+  getUserProfile() {
+    return this.http.get<UserProfile>(`${API}/profile`);
+  }
+
+  updateProfile(payload: { displayName?: string; profileImageUrl?: string }) {
+    return this.http.put<UserProfile>(`${API}/profile`, payload);
+  }
+
+  changePassword(currentPassword: string, newPassword: string) {
+    return this.http.post<void>(`${API}/profile/change-password`, {
+      currentPassword,
+      newPassword,
+    });
+  }
+
+  // Body Metrics
+  getBodyMetrics() {
+    return this.http.get<BodyMetricsHistory>(`${API}/body-metrics`);
+  }
+
+  addBodyMetrics(payload: {
+    weightKg?: number;
+    heightCm?: number;
+    chestCm?: number;
+    waistCm?: number;
+    hipsCm?: number;
+    armCm?: number;
+    thighCm?: number;
+    notes?: string;
+  }) {
+    return this.http.post<BodyMetrics>(`${API}/body-metrics`, payload);
+  }
+
+  updateBodyMetrics(id: string, payload: {
+    weightKg?: number;
+    heightCm?: number;
+    chestCm?: number;
+    waistCm?: number;
+    hipsCm?: number;
+    armCm?: number;
+    thighCm?: number;
+    notes?: string;
+  }) {
+    return this.http.put<BodyMetrics>(`${API}/body-metrics/${id}`, payload);
+  }
+
+  deleteBodyMetrics(id: string) {
+    return this.http.delete<void>(`${API}/body-metrics/${id}`);
   }
 }
