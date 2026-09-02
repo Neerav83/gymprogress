@@ -1,0 +1,361 @@
+<div class="page">
+  <header class="page-header">
+    <p class="page-kicker">Konto</p>
+    <h1 class="page-title">Profil</h1>
+  </header>
+
+  @if (loading()) {
+    <p class="empty">Laddar...</p>
+  } @else if (profile()) {
+    <!-- Profile Card -->
+    <section class="card profile-card">
+      @if (profile()?.profileImageUrl) {
+        <img
+          [src]="profile()!.profileImageUrl"
+          alt="Profilbild"
+          class="profile-image"
+        />
+      } @else {
+        <div class="profile-image-placeholder">
+          {{ profile()!.displayName.charAt(0).toUpperCase() }}
+        </div>
+      }
+
+      <h2 class="profile-name">{{ profile()!.displayName }}</h2>
+      <p class="profile-email muted">{{ profile()!.email }}</p>
+
+      @if (!editingProfile()) {
+        <button class="btn btn-ghost btn-block" (click)="startEditProfile()">
+          Redigera profil
+        </button>
+      } @else {
+        <div class="edit-form">
+          <div class="field">
+            <span>Visningsnamn</span>
+            <input
+              type="text"
+              [(ngModel)]="displayName"
+              placeholder="Ditt namn"
+            />
+          </div>
+
+          <div class="field">
+            <span>Profilbild URL</span>
+            <input
+              type="url"
+              [(ngModel)]="profileImageUrl"
+              placeholder="https://..."
+            />
+          </div>
+
+          <div class="button-group">
+            <button
+              class="btn btn-primary"
+              (click)="saveProfile()"
+              [disabled]="saving()"
+            >
+              {{ saving() ? 'Sparar...' : 'Spara' }}
+            </button>
+            <button
+              class="btn btn-ghost"
+              (click)="cancelEditProfile()"
+              [disabled]="saving()"
+            >
+              Avbryt
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- Password Change -->
+    <section class="card">
+      <h3 class="section-title">Säkerhet</h3>
+
+      @if (!changingPassword()) {
+        <button class="btn btn-ghost btn-block" (click)="startChangePassword()">
+          Byt lösenord
+        </button>
+      } @else {
+        <div class="edit-form">
+          <div class="field">
+            <span>Nuvarande lösenord</span>
+            <input
+              type="password"
+              [(ngModel)]="currentPassword"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div class="field">
+            <span>Nytt lösenord</span>
+            <input
+              type="password"
+              [(ngModel)]="newPassword"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div class="field">
+            <span>Bekräfta nytt lösenord</span>
+            <input
+              type="password"
+              [(ngModel)]="confirmPassword"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div class="button-group">
+            <button
+              class="btn btn-primary"
+              (click)="changePassword()"
+              [disabled]="saving()"
+            >
+              {{ saving() ? 'Sparar...' : 'Ändra lösenord' }}
+            </button>
+            <button
+              class="btn btn-ghost"
+              (click)="cancelChangePassword()"
+              [disabled]="saving()"
+            >
+              Avbryt
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- Body Metrics -->
+    <section class="card">
+      <h3 class="section-title">Mått & Vikt</h3>
+
+      <!-- Current Stats -->
+      @if (metrics().length > 0) {
+        <div class="metrics-summary">
+          @if (getLatestMetric('weightKg')) {
+            <div class="metric-stat">
+              <span class="metric-label">Vikt</span>
+              <span class="metric-value">{{ getLatestMetric('weightKg') }} kg</span>
+              @if (getMetricChange('weightKg')) {
+                <span
+                  class="metric-change"
+                  [class.positive]="getMetricChange('weightKg')! > 0"
+                  [class.negative]="getMetricChange('weightKg')! < 0"
+                >
+                  {{ getMetricChange('weightKg')! > 0 ? '+' : '' }}{{ getMetricChange('weightKg') }} kg
+                </span>
+              }
+            </div>
+          }
+
+          @if (getLatestMetric('heightCm')) {
+            <div class="metric-stat">
+              <span class="metric-label">Längd</span>
+              <span class="metric-value">{{ getLatestMetric('heightCm') }} cm</span>
+            </div>
+          }
+
+          @if (getLatestMetric('chestCm')) {
+            <div class="metric-stat">
+              <span class="metric-label">Bröst</span>
+              <span class="metric-value">{{ getLatestMetric('chestCm') }} cm</span>
+              @if (getMetricChange('chestCm')) {
+                <span
+                  class="metric-change"
+                  [class.positive]="getMetricChange('chestCm')! > 0"
+                  [class.negative]="getMetricChange('chestCm')! < 0"
+                >
+                  {{ getMetricChange('chestCm')! > 0 ? '+' : '' }}{{ getMetricChange('chestCm') }} cm
+                </span>
+              }
+            </div>
+          }
+
+          @if (getLatestMetric('waistCm')) {
+            <div class="metric-stat">
+              <span class="metric-label">Midja</span>
+              <span class="metric-value">{{ getLatestMetric('waistCm') }} cm</span>
+              @if (getMetricChange('waistCm')) {
+                <span
+                  class="metric-change"
+                  [class.positive]="getMetricChange('waistCm')! < 0"
+                  [class.negative]="getMetricChange('waistCm')! > 0"
+                >
+                  {{ getMetricChange('waistCm')! > 0 ? '+' : '' }}{{ getMetricChange('waistCm') }} cm
+                </span>
+              }
+            </div>
+          }
+
+          @if (getLatestMetric('armCm')) {
+            <div class="metric-stat">
+              <span class="metric-label">Arm</span>
+              <span class="metric-value">{{ getLatestMetric('armCm') }} cm</span>
+              @if (getMetricChange('armCm')) {
+                <span
+                  class="metric-change"
+                  [class.positive]="getMetricChange('armCm')! > 0"
+                  [class.negative]="getMetricChange('armCm')! < 0"
+                >
+                  {{ getMetricChange('armCm')! > 0 ? '+' : '' }}{{ getMetricChange('armCm') }} cm
+                </span>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (!addingMetrics()) {
+        <button class="btn btn-primary btn-block" (click)="startAddMetrics()">
+          Lägg till mått
+        </button>
+      } @else {
+        <div class="edit-form">
+          <div class="metrics-grid">
+            <div class="field">
+              <span>Vikt (kg)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newWeightKg"
+                placeholder="75.5"
+              />
+            </div>
+
+            <div class="field">
+              <span>Längd (cm)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newHeightCm"
+                placeholder="180"
+              />
+            </div>
+
+            <div class="field">
+              <span>Bröst (cm)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newChestCm"
+                placeholder="100"
+              />
+            </div>
+
+            <div class="field">
+              <span>Midja (cm)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newWaistCm"
+                placeholder="85"
+              />
+            </div>
+
+            <div class="field">
+              <span>Höfter (cm)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newHipsCm"
+                placeholder="95"
+              />
+            </div>
+
+            <div class="field">
+              <span>Arm (cm)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newArmCm"
+                placeholder="35"
+              />
+            </div>
+
+            <div class="field">
+              <span>Lår (cm)</span>
+              <input
+                type="number"
+                step="0.1"
+                [(ngModel)]="newThighCm"
+                placeholder="55"
+              />
+            </div>
+          </div>
+
+          <div class="field">
+            <span>Anteckningar</span>
+            <input
+              type="text"
+              [(ngModel)]="newNotes"
+              placeholder="Valfria anteckningar..."
+            />
+          </div>
+
+          <div class="button-group">
+            <button
+              class="btn btn-primary"
+              (click)="saveMetrics()"
+              [disabled]="saving()"
+            >
+              {{ saving() ? 'Sparar...' : 'Spara mått' }}
+            </button>
+            <button
+              class="btn btn-ghost"
+              (click)="cancelAddMetrics()"
+              [disabled]="saving()"
+            >
+              Avbryt
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Metrics History -->
+      @if (metrics().length > 0) {
+        <div class="metrics-history">
+          <h4 class="history-title">Historik</h4>
+          @for (metric of metrics(); track metric.id) {
+            <div class="metric-entry">
+              <div class="metric-entry-header">
+                <span class="metric-date">{{ day(metric.date) }}</span>
+                <button
+                  class="btn-delete"
+                  (click)="deleteMetrics(metric.id)"
+                >
+                  ✕
+                </button>
+              </div>
+              <div class="metric-entry-values">
+                @if (metric.weightKg) {
+                  <span>Vikt: {{ metric.weightKg }} kg</span>
+                }
+                @if (metric.heightCm) {
+                  <span>Längd: {{ metric.heightCm }} cm</span>
+                }
+                @if (metric.chestCm) {
+                  <span>Bröst: {{ metric.chestCm }} cm</span>
+                }
+                @if (metric.waistCm) {
+                  <span>Midja: {{ metric.waistCm }} cm</span>
+                }
+                @if (metric.hipsCm) {
+                  <span>Höfter: {{ metric.hipsCm }} cm</span>
+                }
+                @if (metric.armCm) {
+                  <span>Arm: {{ metric.armCm }} cm</span>
+                }
+                @if (metric.thighCm) {
+                  <span>Lår: {{ metric.thighCm }} cm</span>
+                }
+              </div>
+              @if (metric.notes) {
+                <p class="metric-notes">{{ metric.notes }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

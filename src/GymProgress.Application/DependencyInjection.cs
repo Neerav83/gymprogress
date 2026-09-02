@@ -12,6 +12,8 @@ public static class DependencyInjection
         services.AddScoped<ProgressService>();
         services.AddScoped<CoachService>();
         services.AddScoped<AuthService>();
+        services.AddScoped<ProfileService>();
+        services.AddScoped<BodyMetricsService>();
         return services;
     }
 }

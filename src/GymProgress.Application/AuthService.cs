@@ -56,7 +56,7 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
         return await db.Users
             .AsNoTracking()
             .Where(user => user.Id == userId && user.Email != null)
-            .Select(user => new UserDto(user.Id, user.Email!, user.DisplayName))
+            .Select(user => new UserDto(user.Id, user.Email!, user.DisplayName, user.ProfileImageUrl, user.CreatedAt))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -132,7 +132,7 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
     private AuthResponse ToResponse(User user, string refreshToken) => new(
         tokens.CreateAccessToken(user.Id, user.Email!, user.DisplayName),
         refreshToken,
-        new UserDto(user.Id, user.Email!, user.DisplayName));
+        new UserDto(user.Id, user.Email!, user.DisplayName, user.ProfileImageUrl, user.CreatedAt));
 
     private static string NormalizeEmail(string? email)
     {
