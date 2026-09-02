@@ -1,0 +1,94 @@
+.top {
+  margin-bottom: 8px;
+}
+
+.page-title {
+  margin: 0 0 18px;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+h2 {
+  margin: 22px 0 12px;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stack.compact {
+  max-height: 40vh;
+  overflow: auto;
+  margin-bottom: 12px;
+}
+
+.exercise {
+  display: grid;
+  gap: 10px;
+}
+
+.exercise p {
+  margin: 4px 0 0;
+}
+
+.exercise-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.icon-btn {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  font-weight: 700;
+}
+
+.icon-btn.danger {
+  color: var(--danger);
+}
+
+.search {
+  width: 100%;
+  min-height: var(--tap);
+  margin-bottom: 12px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+}
+
+.adder {
+  margin-bottom: 16px;
+}
+
+.pick {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+.btn-primary,
+.btn-ghost {
+  margin-top: 8px;
+}
+
+.btn-danger {
+  margin-top: 16px;
+}

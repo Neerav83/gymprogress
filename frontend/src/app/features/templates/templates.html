@@ -1,0 +1,25 @@
+<p class="page-kicker">Pass</p>
+<h1 class="page-title">Mina mallar</h1>
+
+@if (templates().length === 0) {
+  <p class="empty">
+    Inga mallar än. När du har slutfört ett pass, gå till historiken och spara det som en mall.
+  </p>
+} @else {
+  <div class="stack">
+    @for (template of templates(); track template.id) {
+      <a class="card row" [routerLink]="['/templates', template.id]">
+        <div>
+          <strong>{{ template.name }}</strong>
+          <p class="muted">
+            {{ template.exercises.length }} övningar
+            @if (template.description) {
+              · {{ template.description }}
+            }
+          </p>
+        </div>
+        <span class="chevron">›</span>
+      </a>
+    }
+  </div>
+}

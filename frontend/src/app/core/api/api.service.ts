@@ -126,6 +126,13 @@ export class ApiService {
     return this.http.post<Workout>(`${API}/workouts/from-template/${templateId}`, {});
   }
 
+  updateWorkoutTemplate(
+    id: string,
+    payload: { name: string; description: string | null; exerciseIds: string[] },
+  ) {
+    return this.http.put<WorkoutTemplate>(`${API}/workout-templates/${id}`, payload);
+  }
+
   deleteWorkoutTemplate(id: string) {
     return this.http.delete<void>(`${API}/workout-templates/${id}`);
   }

@@ -41,6 +41,28 @@ public sealed class WorkoutTemplatesController(WorkoutTemplateService templates)
         }
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<WorkoutTemplateDto>> Update(
+        Guid id,
+        [FromBody] UpdateWorkoutTemplateRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var template = await templates.UpdateAsync(
+                id,
+                request.Name,
+                request.Description,
+                request.ExerciseIds,
+                cancellationToken);
+            return template is null ? NotFound() : Ok(template);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { error = exception.Message });
+        }
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {

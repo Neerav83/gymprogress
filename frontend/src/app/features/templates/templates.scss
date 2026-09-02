@@ -1,0 +1,24 @@
+.page-title {
+  margin-bottom: 18px;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.row p {
+  margin: 4px 0 0;
+}
+
+.chevron {
+  font-size: 1.6rem;
+  color: var(--muted);
+}

@@ -81,6 +81,71 @@ public sealed class WorkoutTemplateService(IApplicationDbContext db, ICurrentUse
         return MapDto(template);
     }
 
+    public async Task<WorkoutTemplateDto?> UpdateAsync(
+        Guid id,
+        string name,
+        string? description,
+        IReadOnlyList<Guid> exerciseIds,
+        CancellationToken cancellationToken)
+    {
+        var trimmedName = name.Trim();
+        if (trimmedName.Length == 0)
+        {
+            throw new InvalidOperationException("Mallen måste ha ett namn.");
+        }
+
+        var orderedIds = exerciseIds
+            .Where(exerciseId => exerciseId != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (orderedIds.Count == 0)
+        {
+            throw new InvalidOperationException("Mallen måste ha minst en övning.");
+        }
+
+        var template = await db.WorkoutTemplates
+            .Include(t => t.Exercises)
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == currentUser.UserId, cancellationToken);
+
+        if (template is null)
+        {
+            return null;
+        }
+
+        var exercises = await db.Exercises
+            .Where(exercise => orderedIds.Contains(exercise.Id))
+            .ToListAsync(cancellationToken);
+
+        if (exercises.Count != orderedIds.Count)
+        {
+            throw new InvalidOperationException("En eller flera övningar finns inte.");
+        }
+
+        template.Name = trimmedName;
+        template.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+
+        db.WorkoutTemplateExercises.RemoveRange(template.Exercises);
+
+        var sortOrder = 0;
+        foreach (var exerciseId in orderedIds)
+        {
+            var exercise = exercises.First(item => item.Id == exerciseId);
+            db.WorkoutTemplateExercises.Add(new WorkoutTemplateExercise
+            {
+                Id = Guid.NewGuid(),
+                TemplateId = template.Id,
+                ExerciseId = exercise.Id,
+                Exercise = exercise,
+                SortOrder = sortOrder++
+            });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await GetAsync(id, cancellationToken);
+    }
+
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var template = await db.WorkoutTemplates

@@ -144,3 +144,8 @@ public sealed record CreateTemplateFromWorkoutRequest(
     string Name,
     string? Description);
 
+public sealed record UpdateWorkoutTemplateRequest(
+    string Name,
+    string? Description,
+    IReadOnlyList<Guid> ExerciseIds);
+

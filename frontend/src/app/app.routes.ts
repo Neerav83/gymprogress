@@ -58,5 +58,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/templates/templates').then((m) => m.TemplatesPage),
   },
+  {
+    path: 'templates/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/templates/detail').then((m) => m.TemplateDetailPage),
+  },
   { path: '**', redirectTo: '' },
 ];

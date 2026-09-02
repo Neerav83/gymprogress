@@ -1,0 +1,97 @@
+@if (error(); as message) {
+  <p class="empty">{{ message }}</p>
+  <a class="btn btn-ghost btn-block" routerLink="/templates">Tillbaka</a>
+}
+
+@if (template(); as current) {
+  <header class="top">
+    <a routerLink="/templates">Tillbaka</a>
+  </header>
+
+  <p class="page-kicker">Mall</p>
+  <h1 class="page-title">{{ current.name }}</h1>
+
+  <label class="field">
+    <span>Namn</span>
+    <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" maxlength="120" />
+  </label>
+
+  <label class="field">
+    <span>Beskrivning</span>
+    <input
+      type="text"
+      [ngModel]="description()"
+      (ngModelChange)="description.set($event)"
+      maxlength="500"
+      placeholder="Valfritt"
+    />
+  </label>
+
+  <section>
+    <h2>Övningar</h2>
+    @if (!exercises().length) {
+      <p class="empty">Inga övningar. Lägg till minst en.</p>
+    }
+    <div class="stack">
+      @for (exercise of exercises(); track exercise.exerciseId; let i = $index) {
+        <article class="card exercise">
+          <div>
+            <strong>{{ exercise.exerciseName }}</strong>
+            <p class="muted">{{ equipment(exercise.equipment) }} · {{ muscles(exercise) }}</p>
+          </div>
+          <div class="exercise-actions">
+            <button type="button" class="icon-btn" (click)="move(exercise.exerciseId, -1)" [disabled]="i === 0">
+              ↑
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              (click)="move(exercise.exerciseId, 1)"
+              [disabled]="i === exercises().length - 1"
+            >
+              ↓
+            </button>
+            <button type="button" class="icon-btn danger" (click)="removeExercise(exercise.exerciseId)">
+              Ta bort
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+
+  @if (!adding()) {
+    <button class="btn btn-ghost btn-block" type="button" (click)="adding.set(true)">Lägg till övning</button>
+  } @else {
+    <section class="card adder">
+      <input
+        class="search"
+        type="search"
+        placeholder="Sök övning eller muskelgrupp"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+      />
+      <div class="stack compact">
+        @for (exercise of filteredCatalog(); track exercise.id) {
+          <button class="pick" type="button" (click)="add(exercise)">
+            <strong>{{ exercise.name }}</strong>
+            <span class="muted">{{ equipment(exercise.equipment) }} · {{ muscles(exercise) }}</span>
+          </button>
+        } @empty {
+          <p class="muted">Inga övningar att lägga till.</p>
+        }
+      </div>
+      <button class="btn btn-ghost btn-block" type="button" (click)="adding.set(false); query.set('')">Stäng</button>
+    </section>
+  }
+
+  <button class="btn btn-primary btn-block" type="button" (click)="save()" [disabled]="saving() || !dirty()">
+    {{ saving() ? 'Sparar…' : 'Spara mall' }}
+  </button>
+  <button class="btn btn-ghost btn-block" type="button" (click)="start()" [disabled]="starting()">
+    Starta pass
+  </button>
+  <button class="btn btn-danger btn-block" type="button" (click)="remove()" [disabled]="deleting()">
+    Ta bort mall
+  </button>
+}
