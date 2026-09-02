@@ -1,5 +1,34 @@
-.page-title {
-  margin-bottom: 8px;
+.hero {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+  margin: 12px 0 8px;
+}
+
+.brand-mark {
+  width: 112px;
+  height: 112px;
+  margin: 0 0 8px;
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+  object-fit: cover;
+}
+
+.hero .page-kicker {
+  margin: 0;
+}
+
+.hero .page-title {
+  margin: 0;
+  font-size: clamp(1.85rem, 7.2vw, 2.35rem);
+  line-height: 1.05;
+}
+
+.lede {
+  margin: 0;
+  max-width: 22rem;
+  line-height: 1.45;
 }
 
 .form {

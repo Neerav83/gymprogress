@@ -1,6 +1,9 @@
-<p class="page-kicker">Gym Progress</p>
-<h1 class="page-title">Skapa konto</h1>
-<p class="muted">Första kontot tar över den träning som redan är inloggad på den här servern.</p>
+<header class="hero">
+  <img class="brand-mark" src="/icon-192.png" width="192" height="192" alt="Gym Progress" />
+  <p class="page-kicker">Gym Progress</p>
+  <h1 class="page-title">Din logg. Dina kilo.</h1>
+  <p class="lede muted">Skapa konto och börja samla passen. Första kontot tar över träningen som redan finns på servern.</p>
+</header>
 
 <form class="card form" (ngSubmit)="submit()">
   <label class="field">
@@ -19,7 +22,7 @@
     <p class="form-error">{{ message }}</p>
   }
   <button class="btn btn-primary btn-block" type="submit" [disabled]="submitting()">
-    {{ submitting() ? 'Skapar konto…' : 'Skapa konto' }}
+    {{ submitting() ? 'Skapar konto…' : 'Börja träna' }}
   </button>
 </form>
 

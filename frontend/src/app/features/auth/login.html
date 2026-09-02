@@ -1,6 +1,9 @@
-<p class="page-kicker">Gym Progress</p>
-<h1 class="page-title">Logga in</h1>
-<p class="muted">Dina pass syns bara på ditt konto.</p>
+<header class="hero">
+  <img class="brand-mark" src="/icon-192.png" width="192" height="192" alt="Gym Progress" />
+  <p class="page-kicker">Gym Progress</p>
+  <h1 class="page-title">Nästa rekord börjar här.</h1>
+  <p class="lede muted">Logga passen. Följ kurvan. Bli starkare än igår.</p>
+</header>
 
 <form class="card form" (ngSubmit)="submit()">
   <label class="field">
@@ -15,7 +18,7 @@
     <p class="form-error">{{ message }}</p>
   }
   <button class="btn btn-primary btn-block" type="submit" [disabled]="submitting()">
-    {{ submitting() ? 'Loggar in…' : 'Logga in' }}
+    {{ submitting() ? 'Loggar in…' : 'Kör igång' }}
   </button>
 </form>
 
