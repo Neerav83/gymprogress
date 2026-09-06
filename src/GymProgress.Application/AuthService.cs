@@ -1,6 +1,5 @@
 using GymProgress.Application.Contracts;
 using GymProgress.Domain;
-using GymProgress.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

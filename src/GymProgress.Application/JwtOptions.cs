@@ -1,4 +1,4 @@
-namespace GymProgress.Infrastructure;
+namespace GymProgress.Application;
 
 public sealed class JwtOptions
 {
