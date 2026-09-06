@@ -45,6 +45,9 @@ public sealed class RateLimitingMiddleware(RequestDelegate next, ILogger<RateLim
 
         var clientLimit = _clients.GetOrAdd(clientId, _ => new ClientRateLimit());
 
+        bool rateLimitExceeded;
+        int retryAfter;
+
         lock (clientLimit)
         {
             var now = DateTimeOffset.UtcNow;
@@ -62,28 +65,36 @@ public sealed class RateLimitingMiddleware(RequestDelegate next, ILogger<RateLim
                 logger.LogWarning("Rate limit exceeded for client {ClientId} on {Path}", 
                     MaskClientId(clientId), context.Request.Path);
                 
-                context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
-                context.Response.ContentType = "application/json";
-                
-                var retryAfter = (int)(rule.Window - (now - clientLimit.WindowStart)).TotalSeconds;
-                context.Response.Headers.Append("Retry-After", retryAfter.ToString());
-                
-                var response = new
-                {
-                    error = "För många förfrågningar. Försök igen senare.",
-                    statusCode = 429,
-                    retryAfter
-                };
-
-                await context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                }));
-                
-                return;
+                rateLimitExceeded = true;
+                retryAfter = (int)(rule.Window - (now - clientLimit.WindowStart)).TotalSeconds;
             }
+            else
+            {
+                clientLimit.RequestCount++;
+                rateLimitExceeded = false;
+                retryAfter = 0;
+            }
+        }
 
-            clientLimit.RequestCount++;
+        if (rateLimitExceeded)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
+            context.Response.ContentType = "application/json";
+            context.Response.Headers.Append("Retry-After", retryAfter.ToString());
+            
+            var response = new
+            {
+                error = "För många förfrågningar. Försök igen senare.",
+                statusCode = 429,
+                retryAfter
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            }));
+            
+            return;
         }
 
         await next(context);
