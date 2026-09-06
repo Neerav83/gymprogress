@@ -2,10 +2,16 @@ using GymProgress.Application.Contracts;
 using GymProgress.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace GymProgress.Application;
 
-public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
+public sealed class AuthService(
+    IApplicationDbContext db, 
+    ITokenService tokens, 
+    IOptions<JwtOptions> jwtOptions,
+    IAuditLogger auditLogger,
+    IClientInfo clientInfo)
 {
     private readonly PasswordHasher<User> _passwords = new();
 
@@ -17,12 +23,15 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
 
         if (await db.Users.AnyAsync(user => user.Email == email, cancellationToken))
         {
-            throw new InvalidOperationException("E-postadressen är redan registrerad.");
+            auditLogger.LogLoginFailure(email, clientInfo.GetIpAddress(), "Email redan registrerad");
+            throw new InvalidOperationException("Ett konto med denna e-postadress kunde inte skapas.");
         }
 
         var user = await ClaimSeedUserOrCreateAsync(email, displayName, cancellationToken);
         user.PasswordHash = _passwords.HashPassword(user, request.Password);
         await db.SaveChangesAsync(cancellationToken);
+
+        auditLogger.LogRegistration(user.Id, email, clientInfo.GetIpAddress());
 
         return await ToResponseAsync(user, cancellationToken);
     }
@@ -33,12 +42,14 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
         var user = await db.Users.FirstOrDefaultAsync(item => item.Email == email, cancellationToken);
         if (user is null || string.IsNullOrWhiteSpace(user.PasswordHash))
         {
+            auditLogger.LogLoginFailure(email, clientInfo.GetIpAddress(), "Användare hittades inte");
             return null;
         }
 
         var result = _passwords.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (result == PasswordVerificationResult.Failed)
         {
+            auditLogger.LogLoginFailure(email, clientInfo.GetIpAddress(), "Fel lösenord");
             return null;
         }
 
@@ -47,6 +58,8 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
             user.PasswordHash = _passwords.HashPassword(user, request.Password);
             await db.SaveChangesAsync(cancellationToken);
         }
+
+        auditLogger.LogLoginSuccess(user.Id, email, clientInfo.GetIpAddress());
 
         return await ToResponseAsync(user, cancellationToken);
     }
@@ -102,22 +115,65 @@ public sealed class AuthService(IApplicationDbContext db, ITokenService tokens)
         }
 
         refreshToken.RevokedAt = DateTimeOffset.UtcNow;
+
+        var activeTokenCount = await ActiveRefreshTokens(refreshToken.UserId)
+            .CountAsync(cancellationToken);
+
+        if (activeTokenCount >= 5)
+        {
+            var oldestTokens = await ActiveRefreshTokens(refreshToken.UserId)
+                .OrderBy(rt => rt.CreatedAt)
+                .Take(activeTokenCount - 4)
+                .ToListAsync(cancellationToken);
+
+            foreach (var token in oldestTokens)
+            {
+                token.RevokedAt = DateTimeOffset.UtcNow;
+            }
+        }
+
         var newRefreshToken = CreateRefreshToken(refreshToken.UserId);
         db.RefreshTokens.Add(newRefreshToken);
         await db.SaveChangesAsync(cancellationToken);
 
+        auditLogger.LogTokenRefresh(refreshToken.UserId, clientInfo.GetIpAddress());
+
         return ToResponse(refreshToken.User, newRefreshToken.Token);
+    }
+
+    public async Task RevokeAllTokensAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var activeTokens = await ActiveRefreshTokens(userId)
+            .ToListAsync(cancellationToken);
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var token in activeTokens)
+        {
+            token.RevokedAt = now;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        auditLogger.LogLogout(userId, clientInfo.GetIpAddress());
+    }
+
+    private IQueryable<RefreshToken> ActiveRefreshTokens(Guid userId)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return db.RefreshTokens.Where(rt =>
+            rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > now);
     }
 
     private RefreshToken CreateRefreshToken(Guid userId)
     {
+        var expirationDays = Math.Clamp(jwtOptions.Value.RefreshTokenExpirationDays, 1, 365);
         return new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             Token = tokens.GenerateRefreshToken(),
             CreatedAt = DateTimeOffset.UtcNow,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(90)
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(expirationDays)
         };
     }
 

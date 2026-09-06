@@ -73,4 +73,11 @@ public sealed class AuthController(AuthService auth, ICurrentUser currentUser) :
             return BadRequest(new { error = exception.Message });
         }
     }
+
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout(CancellationToken cancellationToken)
+    {
+        await auth.RevokeAllTokensAsync(currentUser.UserId, cancellationToken);
+        return Ok(new { message = "Alla sessioner har avslutats." });
+    }
 }

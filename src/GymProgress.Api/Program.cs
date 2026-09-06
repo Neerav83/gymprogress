@@ -1,5 +1,6 @@
 using System.Text;
 using GymProgress.Api;
+using GymProgress.Api.BackgroundServices;
 using GymProgress.Api.Middleware;
 using GymProgress.Application;
 using GymProgress.Infrastructure;
@@ -16,9 +17,12 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+builder.Services.AddScoped<IClientInfo, HttpClientInfo>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddHealthChecks();
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
@@ -62,6 +66,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -69,9 +74,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi().AllowAnonymous();
 }
 
+app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<RateLimitingMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();
 

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GymProgress.Application;
 
-public sealed class ProfileService(IApplicationDbContext db)
+public sealed class ProfileService(IApplicationDbContext db, IAuditLogger auditLogger, IClientInfo clientInfo)
 {
     private readonly PasswordHasher<User> _passwords = new();
 
@@ -41,12 +41,21 @@ public sealed class ProfileService(IApplicationDbContext db)
 
         if (request.ProfileImageUrl is not null)
         {
-            user.ProfileImageUrl = string.IsNullOrWhiteSpace(request.ProfileImageUrl)
+            var imageUrl = string.IsNullOrWhiteSpace(request.ProfileImageUrl)
                 ? null
                 : request.ProfileImageUrl.Trim();
+
+            if (imageUrl is not null && !UrlValidator.IsValidAndSafeUrl(imageUrl))
+            {
+                throw new ArgumentException("Profil-URL:en är ogiltig eller blockerad av säkerhetsskäl.");
+            }
+
+            user.ProfileImageUrl = imageUrl;
         }
 
         await db.SaveChangesAsync(cancellationToken);
+
+        auditLogger.LogProfileUpdate(userId, clientInfo.GetIpAddress());
 
         return new UserProfileDto(
             user.Id,
@@ -73,12 +82,26 @@ public sealed class ProfileService(IApplicationDbContext db)
             return false;
         }
 
-        if (request.NewPassword.Length < 6)
+        if (request.NewPassword.Length < 8)
         {
-            throw new ArgumentException("Lösenordet måste vara minst 6 tecken.");
+            throw new ArgumentException("Lösenordet måste vara minst 8 tecken.");
         }
 
         user.PasswordHash = _passwords.HashPassword(user, request.NewPassword);
+        await db.SaveChangesAsync(cancellationToken);
+
+        auditLogger.LogPasswordChange(userId, clientInfo.GetIpAddress());
+
+        var now = DateTimeOffset.UtcNow;
+        var activeTokens = await db.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > now)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in activeTokens)
+        {
+            token.RevokedAt = now;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         return true;
