@@ -1,6 +1,6 @@
 # Gym Progress
 
-Personlig, self-hosted träningslogg. Angular + ASP.NET Core + PostgreSQL. Tänkt att köras hemma och nås via Tailscale.
+Personlig, self-hosted träningslogg. Angular + ASP.NET Core + PostgreSQL, plus en Flutter-klient i `mobile/`. Tänkt att köras hemma och nås via Tailscale.
 
 Data är sanningen. AI-coachen är ett tillägg, inte källan till passen.
 
@@ -9,6 +9,7 @@ Data är sanningen. AI-coachen är ett tillägg, inte källan till passen.
 - [Docker](https://docs.docker.com/get-docker/) (hela stacken, eller bara Postgres i utveckling)
 - För lokal utveckling utan Docker-frontend/API: [.NET 10 SDK](https://dotnet.microsoft.com/download) och [Node.js 22](https://nodejs.org/)
 - Valfritt: [Tailscale](https://tailscale.com/) för att nå appen från telefonen
+- Valfritt: [Flutter](https://docs.flutter.dev/get-started/install) för mobilappen i `mobile/`
 - Valfritt: [LM Studio](https://lmstudio.ai/) om du vill ha gymcoachen
 
 ## Hemligheter
@@ -57,6 +58,17 @@ http://DIN-DATOR.tailnet.ts.net:4200
 ```
 
 API:t lyssnar på `0.0.0.0:5080`. Frontenden proxar `/api` dit.
+
+## Flutter-appen
+
+Mobilklienten ligger i `mobile/` och pratar med samma API. Webben är fortfarande produktion.
+
+```bash
+cd mobile
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:5080
+```
+
+På en riktig telefon: sätt API-adressen till Tailscale-värden plus `:5080`, antingen via `--dart-define` eller fältet på inloggningsskärmen. Mer i `mobile/README.md`.
 
 Första gången: skapa konto på `/register`. Första kontot tar över eventuell befintlig träningshistorik på servern. Därefter har varje användare sin egen logg.
 
