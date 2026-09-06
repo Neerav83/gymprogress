@@ -7,5 +7,6 @@ public sealed class JwtOptions
     public string Issuer { get; set; } = "GymProgress";
     public string Audience { get; set; } = "GymProgress";
     public string Key { get; set; } = "";
-    public int ExpirationDays { get; set; } = 30;
+    public int AccessTokenExpirationDays { get; set; } = 7;
+    public int RefreshTokenExpirationDays { get; set; } = 90;
 }

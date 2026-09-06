@@ -8,6 +8,8 @@ public sealed class WorkoutService(IApplicationDbContext db, ICurrentUser curren
 {
     public async Task<IReadOnlyList<WorkoutSummaryDto>> ListAsync(CancellationToken cancellationToken)
     {
+        const int maxResults = 100;
+        
         var workouts = await db.Workouts
             .AsNoTracking()
             .Where(workout => workout.UserId == currentUser.UserId)
@@ -16,6 +18,7 @@ public sealed class WorkoutService(IApplicationDbContext db, ICurrentUser curren
             .Include(workout => workout.Exercises)
                 .ThenInclude(exercise => exercise.Exercise)
             .OrderByDescending(workout => workout.StartedAt)
+            .Take(maxResults)
             .ToListAsync(cancellationToken);
 
         return workouts.Select(MapSummary).ToList();

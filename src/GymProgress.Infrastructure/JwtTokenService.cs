@@ -15,7 +15,8 @@ public sealed class JwtTokenService(IOptions<JwtOptions> options) : ITokenServic
         var settings = options.Value;
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(RequireKey(settings.Key)));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddDays(7);
+        var expirationDays = Math.Clamp(settings.AccessTokenExpirationDays, 1, 30);
+        var expires = DateTime.UtcNow.AddDays(expirationDays);
 
         var token = new JwtSecurityToken(
             settings.Issuer,

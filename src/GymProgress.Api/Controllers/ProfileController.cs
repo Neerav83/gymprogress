@@ -43,7 +43,7 @@ public sealed class ProfileController(
                 cancellationToken);
 
             return success
-                ? Ok()
+                ? Ok(new { message = "Lösenord ändrat. Alla aktiva sessioner har avslutats." })
                 : Unauthorized(new { error = "Fel nuvarande lösenord." });
         }
         catch (ArgumentException exception)
