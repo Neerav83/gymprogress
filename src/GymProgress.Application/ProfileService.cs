@@ -92,11 +92,11 @@ public sealed class ProfileService(IApplicationDbContext db, IAuditLogger auditL
 
         auditLogger.LogPasswordChange(userId, clientInfo.GetIpAddress());
 
+        var now = DateTimeOffset.UtcNow;
         var activeTokens = await db.RefreshTokens
-            .Where(rt => rt.UserId == userId && rt.IsActive)
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > now)
             .ToListAsync(cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
         foreach (var token in activeTokens)
         {
             token.RevokedAt = now;

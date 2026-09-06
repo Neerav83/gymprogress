@@ -1,12 +1,13 @@
 using System.Collections.Concurrent;
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace GymProgress.Api.Middleware;
 
-public sealed class RateLimitingMiddleware(RequestDelegate next, ILogger<RateLimitingMiddleware> logger)
+public sealed class RateLimitingMiddleware(
+    RequestDelegate next,
+    ILogger<RateLimitingMiddleware> logger,
+    IHostEnvironment environment)
 {
     private static readonly ConcurrentDictionary<string, ClientRateLimit> _clients = new();
     private static readonly PeriodicTimer _cleanupTimer = new(TimeSpan.FromMinutes(5));
@@ -33,6 +34,13 @@ public sealed class RateLimitingMiddleware(RequestDelegate next, ILogger<RateLim
 
     public async Task InvokeAsync(HttpContext context)
     {
+        if (environment.IsEnvironment("Testing") ||
+            context.Request.Path.StartsWithSegments("/health"))
+        {
+            await next(context);
+            return;
+        }
+
         var endpoint = context.GetEndpoint();
         if (endpoint?.Metadata.GetMetadata<SkipRateLimitAttribute>() != null)
         {

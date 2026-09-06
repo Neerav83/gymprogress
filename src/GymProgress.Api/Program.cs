@@ -68,21 +68,19 @@ var app = builder.Build();
 
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseMiddleware<RateLimitingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();
 }
 
+app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<RateLimitingMiddleware>();
 app.MapControllers();
-app.MapHealthChecks("/health").AllowAnonymous().Add(endpointBuilder =>
-{
-    endpointBuilder.Metadata.Add(new SkipRateLimitAttribute());
-});
+app.MapHealthChecks("/health").AllowAnonymous();
 
 if (!app.Environment.IsEnvironment("Testing"))
 {

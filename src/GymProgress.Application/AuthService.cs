@@ -116,13 +116,12 @@ public sealed class AuthService(
 
         refreshToken.RevokedAt = DateTimeOffset.UtcNow;
 
-        var activeTokenCount = await db.RefreshTokens
-            .CountAsync(rt => rt.UserId == refreshToken.UserId && rt.IsActive, cancellationToken);
+        var activeTokenCount = await ActiveRefreshTokens(refreshToken.UserId)
+            .CountAsync(cancellationToken);
 
         if (activeTokenCount >= 5)
         {
-            var oldestTokens = await db.RefreshTokens
-                .Where(rt => rt.UserId == refreshToken.UserId && rt.IsActive)
+            var oldestTokens = await ActiveRefreshTokens(refreshToken.UserId)
                 .OrderBy(rt => rt.CreatedAt)
                 .Take(activeTokenCount - 4)
                 .ToListAsync(cancellationToken);
@@ -144,8 +143,7 @@ public sealed class AuthService(
 
     public async Task RevokeAllTokensAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var activeTokens = await db.RefreshTokens
-            .Where(rt => rt.UserId == userId && rt.IsActive)
+        var activeTokens = await ActiveRefreshTokens(userId)
             .ToListAsync(cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
@@ -157,6 +155,13 @@ public sealed class AuthService(
         await db.SaveChangesAsync(cancellationToken);
 
         auditLogger.LogLogout(userId, clientInfo.GetIpAddress());
+    }
+
+    private IQueryable<RefreshToken> ActiveRefreshTokens(Guid userId)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return db.RefreshTokens.Where(rt =>
+            rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > now);
     }
 
     private RefreshToken CreateRefreshToken(Guid userId)

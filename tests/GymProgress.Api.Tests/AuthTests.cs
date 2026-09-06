@@ -53,6 +53,15 @@ public sealed class AuthTests : IClassFixture<GymProgressApiFactory>, IAsyncLife
         var session = await login.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.NotNull(session);
         Assert.Equal(created.User.Id, session.User.Id);
+
+        var refreshed = await _client.PostAsJsonAsync(
+            "/api/v1/auth/refresh",
+            new RefreshTokenRequest(session.RefreshToken));
+        refreshed.EnsureSuccessStatusCode();
+        var next = await refreshed.Content.ReadFromJsonAsync<AuthResponse>();
+        Assert.NotNull(next);
+        Assert.Equal(session.User.Id, next.User.Id);
+        Assert.NotEqual(session.RefreshToken, next.RefreshToken);
     }
 
     [Fact]
