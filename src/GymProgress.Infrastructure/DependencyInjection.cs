@@ -20,7 +20,6 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddSingleton<IAuditLogger, AuditLogger>();
-        services.AddHostedService<RefreshTokenCleanupService>();
         services.AddHttpClient<IAiCoach, LmStudioCoach>((provider, client) =>
         {
             var options = provider.GetRequiredService<IOptions<AiOptions>>().Value;

@@ -1,5 +1,6 @@
 using System.Text;
 using GymProgress.Api;
+using GymProgress.Api.BackgroundServices;
 using GymProgress.Api.Middleware;
 using GymProgress.Application;
 using GymProgress.Infrastructure;
@@ -19,6 +20,7 @@ builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<IClientInfo, HttpClientInfo>();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<AppDbContext>("database");
 

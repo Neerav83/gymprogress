@@ -1,10 +1,7 @@
 using GymProgress.Application;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
-namespace GymProgress.Infrastructure;
+namespace GymProgress.Api.BackgroundServices;
 
 public sealed class RefreshTokenCleanupService(
     IServiceProvider serviceProvider,
